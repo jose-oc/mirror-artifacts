@@ -43,8 +43,8 @@ It also manages provenance, SBOM generation, and signing — all integrated for 
 You can build `jocmirrorctl` locally:
 
 ```bash
-git clone https://github.com/<your-org>/jocmirrorctl.git
-cd jocmirrorctl
+git clone https://github.com/jose-oc/poc-mirror-artifacts.git
+cd poc-mirror-artifacts/jocmirrorctl
 go build -o jocmirrorctl ./cmd/jocmirrorctl
 ```
 
@@ -66,8 +66,9 @@ By default, it loads `config.yaml` (or another path specified via `--config`).
 ```yaml
 gcp:
   project_id: my-gcp-project
-  region: europe-west1
-  gar_repo: europe-west1-docker.pkg.dev/my-gcp-project/helm-mirror
+  region: europe-southwest1
+  gar_repo_charts: europe-southwest1-docker.pkg.dev/my-gcp-project/test-helm-charts
+  gar_repo_containers: europe-southwest1-docker.pkg.dev/my-gcp-project/test-container-images
 
 options:
   dry_run: false
@@ -229,6 +230,16 @@ jobs:
 
 ---
 
+## Development
+
+To run tests: 
+
+```bash
+go test ./...
+```
+
+---
+
 ## 🧠 Notes
 
 * The tool uses **Helm SDK** and **ORAS Go library** — not shelling out to CLIs.
@@ -240,7 +251,6 @@ jobs:
 
 ## 📋 Roadmap
 
-* [ ] CLI skeleton with Cobra, Viper, Zerolog
 * [ ] Image mirroring via ORAS library
 * [ ] Helm chart modification logic
 * [ ] SBOM and provenance attachment
