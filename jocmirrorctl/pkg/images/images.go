@@ -4,12 +4,16 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"os"
+	"os/exec"
+	"strings"
 
 	"github.com/jose-oc/poc-mirror-artifacts/jocmirrorctl/pkg/appcontext"
 	"gopkg.in/yaml.v3"
 	"oras.land/oras-go/v2"
 	"oras.land/oras-go/v2/registry/remote"
+	"oras.land/oras-go/v2/registry/remote/auth"
 )
 
 // Image represents an entry in images.yaml
@@ -73,6 +77,25 @@ func MirrorImages(ctx *appcontext.AppContext, imagesFile string) error {
 			continue
 		}
 
+		// Authenticate with Google Artifact Registry
+		cmd := exec.Command("gcloud", "auth", "print-access-token")
+		token, err := cmd.Output()
+		if err != nil {
+			logger.Error().Err(err).Msg("Failed to get gcloud access token")
+			failedImages = append(failedImages, map[string]string{"name": img.Name, "error": err.Error()})
+			continue
+		}
+
+		targetRepo.Client = &auth.Client{
+			Client: http.DefaultClient,
+			Cache:  auth.NewCache(),
+			Credential: func(ctx context.Context, s string) (auth.Credential, error) {
+				return auth.Credential{
+					AccessToken: strings.TrimSpace(string(token)),
+				}, nil
+			},
+		}
+
 		// Check if image already exists in GAR (idempotency)
 		sourceDesc, err := sourceRepo.Resolve(context.Background(), sourceRepo.Reference.Reference)
 		if err != nil {
@@ -93,15 +116,6 @@ func MirrorImages(ctx *appcontext.AppContext, imagesFile string) error {
 				Msg("Tag points to different digest in GAR")
 		}
 
-		// Create a temporary local store for ORAS
-		// localStore, err := oci.New("/tmp/oci-mirror")
-		if err != nil {
-			logger.Error().Err(err).Msg("Failed to create local OCI store")
-			failedImages = append(failedImages, map[string]string{"name": img.Name, "error": err.Error()})
-			continue
-		}
-		defer os.RemoveAll("/tmp/oci-mirror")
-
 		// Mirror the image
 		// Equivalent to: oras cp <source> <target>
 		_, err = oras.Copy(context.Background(), sourceRepo, sourceRepo.Reference.Reference, targetRepo, targetRepo.Reference.Reference, oras.DefaultCopyOptions)
@@ -111,7 +125,7 @@ func MirrorImages(ctx *appcontext.AppContext, imagesFile string) error {
 			continue
 		}
 
-		logger.Info().Str("name", img.Name).Str("target", targetRepoPath).Msg("Successfully mirrored image to GAR")
+		logger.Info().Str("name", img.Name).Str("target", targetRepoPath).Msg("Successfully mirrored image to GAR. Equivalent to: oras cp <source> <target>")
 	}
 
 	// Log failed images in JSON format for GitHub Actions

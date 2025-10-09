@@ -128,13 +128,24 @@ jocmirrorctl [command] [flags]
 
 
 **Example `images.yaml`**:
+
+When you mirror an image:
+
+  * The `source` field tells the tool where to pull the image from.
+  * The `name` field tells the tool what to call the image when it's pushed to your Google Artifact Registry.
+
+For example, if you have this in your images.yaml:
+
 ```yaml
 images:
-  - name: nginx
-    source: docker.io/bitnami/nginx:1.25.3
+  - name: my-custom-alpine
+    source: docker.io/library/alpine:3.22.2
   - name: redis
     source: docker.io/bitnami/redis:7.2.0
 ```
+
+The tool will pull `docker.io/library/alpine:3.22.2` and push it to your Artifact Registry as my-custom-alpine, with the same tag. This allows you to have different names for your images in your private registry.
+
 
 #### Mirror all (charts + images)
 
