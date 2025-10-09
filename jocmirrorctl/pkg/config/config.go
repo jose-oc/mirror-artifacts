@@ -31,6 +31,7 @@ type OptionsConfig struct {
 
 // LoadConfig loads configuration from file or environment variables
 func LoadConfig(cfgFile string) (*Config, error) {
+	// TODO review the parameter cfgFile
 	logger := logging.NewLogger()
 	var cfg Config
 	if err := viper.Unmarshal(&cfg); err != nil {

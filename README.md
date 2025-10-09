@@ -85,7 +85,8 @@ options:
 | ------------------------------ | ------ | -------------------------------------------- |
 | `gcp.project_id`               | string | GCP project ID                               |
 | `gcp.region`                   | string | GCP region                                   |
-| `gcp.gar_repo`                 | string | Full GAR repo name                           |
+| `gcp.gar_repo_charts`          | string | Full GAR repo name for helm charts           |
+| `gcp.gar_repo_containers`      | string | Full GAR repo name for container images      |
 | `options.dry_run`              | bool   | Logs actions without executing               |
 | `options.verbose`              | bool   | Enables debug logging                        |
 | `options.suffix`               | string | Version suffix for mirrored charts           |
@@ -96,6 +97,10 @@ options:
 ---
 
 ## Usage
+
+### GCP authentication
+
+Ensure gcloud auth configure-docker europe-southwest1-docker.pkg.dev is run or GOOGLE_APPLICATION_CREDENTIALS is set for GAR authentication.
 
 ### General command pattern
 
@@ -108,14 +113,28 @@ jocmirrorctl [command] [flags]
 | Flag        | Description                                      |
 | ----------- | ------------------------------------------------ |
 | `--config`  | Path to configuration file                       |
-| `--charts`  | Path to YAML file with list of Helm charts       |
-| `--images`  | Path to YAML file with list of container images  |
 | `--dry-run` | Simulate actions without pushing                 |
 | `--verbose` | Enable debug logs                                |
 
 ---
 
 ### Subcommands
+
+- `version`: Print the version of jocmirrorctl.
+- `mirror images --images <file>`: Mirror container images to GAR.
+- `mirror charts --charts <file>`: Mirror Helm charts to GAR.
+- `mirror all --images <file> --charts <file>`: Mirror both images and charts.
+- `verify`: Verify mirrored artifacts in GAR.
+
+
+**Example `images.yaml`**:
+```yaml
+images:
+  - name: nginx
+    source: docker.io/bitnami/nginx:1.25.3
+  - name: redis
+    source: docker.io/bitnami/redis:7.2.0
+```
 
 #### Mirror all (charts + images)
 
