@@ -50,10 +50,9 @@ func MirrorImages(ctx *appcontext.AppContext, imagesFile string) (map[string]str
 	// Read images.yaml
 	data, err := os.ReadFile(imagesFile)
 	if err != nil {
-		log.Fatal().Err(err).Str("file", imagesFile).Msg("Failed to read images file")
+		log.Error().Err(err).Str("file", imagesFile).Msg("Failed to read images file")
 		return nil, nil, err
 	}
-
 	var imagesList ImagesList
 	if err := yaml.Unmarshal(data, &imagesList); err != nil {
 		log.Error().Err(err).Str("file", imagesFile).Msg("Failed to parse images file")
