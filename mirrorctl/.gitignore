@@ -31,5 +31,5 @@ go.work.sum
 # .idea/
 # .vscode/
 
-jocmirrorctl
-.jocmirrorctl.yaml
+mirrorctl
+.mirrorctl.yaml

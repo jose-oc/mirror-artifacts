@@ -1,0 +1,22 @@
+images:
+  - name: hello-world
+    source: docker.io/library/hello-world:latest
+  - name: wrong-image
+    source: docker.io/bitnami/nginx:1.25.3
+  - name: wrong-image-not-available
+    source: docker.io/bitnami/redis:7.2.0
+  - name: alpine
+    source: docker.io/library/alpine:3.22.2
+  - name: alpine
+    source: docker.io/library/alpine:latest
+  - name: curl
+    source: quay.io/curl/curl:8.16.0
+  - name: curl
+    source: docker.io/curlimages/curl:8.15.0
+  - name: curl
+    source: quay.io/curl/curl:latest
+  # <gcp.gar_repo_containers>/bitnami/mariadb:10.11.3-debian-11-r5
+  - name: bitnami/mariadb
+    source: docker.io/bitnamilegacy/mariadb:10.11.3-debian-11-r5
+  - name: wrong-image-no-tag
+    source: docker.io/bitnamilegacy/mariadb

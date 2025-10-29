@@ -1,0 +1,18 @@
+# This is a sample of configuration file.
+# Copy this file with the .mirrorctl.yaml name and set the proper values
+
+gcp:
+  project_id: poc-development-123456
+  region: europe-southwest1
+  gar_repo_charts: europe-southwest1-docker.pkg.dev/poc-development-123456/test-helm-charts
+  gar_repo_containers: europe-southwest1-docker.pkg.dev/poc-development-123456/test-container-images
+
+options:
+  suffix: "-devopstest"
+  keep_temp_dir: false
+  notify_tag_mutations: true
+
+prod-mode: false
+log-color: true
+log-level: "debug"
+log-file: ""
