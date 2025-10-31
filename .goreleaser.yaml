@@ -41,6 +41,14 @@ archives:
       - goos: windows
         formats: [zip]
 
+# Change the checksum filename:
+checksum:
+  name_template: "checksums.txt"
+
+# Change the digests filename:
+docker_digest:
+  name_template: "digests.txt"
+
 changelog:
   sort: asc
   filters:
