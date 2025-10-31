@@ -1,0 +1,20 @@
+apiVersion: v2
+annotations:
+  # --- Provenance Metadata ---
+  repackage.provenance/repackaged-by: "mirrorctl 0.1.0"
+  repackage.provenance/original-chart-url: "https://grafana.github.io/helm-charts"
+  repackage.provenance/original-chart-name: "loki"
+  repackage.provenance/original-chart-version: "5.5.2"
+  repackage.provenance/timestamp: "2025-10-22T14:30:00Z"
+appVersion: 0.44.2
+description: A Helm chart for Grafana Agent Operator
+home: https://grafana.com/docs/agent/v0.44/
+icon: https://raw.githubusercontent.com/grafana/agent/v0.44.2/docs/sources/assets/logo_and_name.png
+maintainers:
+- email: grafana-agent-team@googlegroups.com
+  name: Grafana Agent Team
+name: grafana-agent-operator
+sources:
+- https://github.com/grafana/agent/tree/v0.44.2/static/operator
+type: application
+version: 0.5.1-poc
