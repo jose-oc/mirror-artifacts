@@ -11,9 +11,9 @@ version: 2
 before:
   hooks:
     # You may remove this if you don't use go modules.
-    - cd mirrorctl && go mod tidy
+    - sh -c 'cd mirrorctl && go mod tidy'
     # you may remove this if you don't need go generate
-    - cd mirrorctl && go generate ./...
+    - sh -c 'cd mirrorctl && go generate ./...'
 
 builds:
   - id: mirrorctl
