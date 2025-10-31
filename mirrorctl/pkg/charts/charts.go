@@ -49,6 +49,10 @@ func mirrorHelmChart(ctx *appcontext.AppContext, chart Chart) error {
 		return err
 	}
 
-	log.Info().Str("chart", chart.Name).Str("version", chart.Version).Msg("Chart successfully mirrored")
+	if ctx.DryRun {
+		log.Info().Str("chart", chart.Name).Str("version", chart.Version).Msg("Running in dry-run, chart would have been mirrored")
+	} else {
+		log.Info().Str("chart", chart.Name).Str("version", chart.Version).Msg("Chart successfully mirrored")
+	}
 	return nil
 }
