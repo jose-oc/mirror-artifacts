@@ -8,13 +8,20 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Download latest release asset
+      - name: Download latest release asset (Linux x86_64)
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          LATEST_RELEASE_URL=$(curl -s https://api.github.com/repos/${{ github.repository }}/releases/latest \
-            | jq -r '.assets[] | select(.name | test("Linux_x86_64\\.tar\\.gz$")) | .browser_download_url')
+          LATEST_RELEASE_URL=$(curl -s -H "Authorization: token $GH_TOKEN" \
+            https://api.github.com/repos/${{ github.repository }}/releases/latest \
+            | jq -r '.assets[] | select(.name | test("Linux_x86_64\\.tar\\.gz$")) | .url')
 
-          echo "Downloading from: $LATEST_RELEASE_URL"
-          curl -L -o mirrorctl.tar.gz "$LATEST_RELEASE_URL"
+          echo "Asset API URL: $LATEST_RELEASE_URL"
+
+          curl -L -H "Authorization: token $GH_TOKEN" \
+               -H "Accept: application/octet-stream" \
+               "$LATEST_RELEASE_URL" \
+               -o mirrorctl.tar.gz
 
       - name: Extract and run mirrorctl
         run: |
