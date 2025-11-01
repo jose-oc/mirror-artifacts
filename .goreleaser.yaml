@@ -1,8 +1,5 @@
-# This is an example .goreleaser.yml file with some sensible defaults.
-# Make sure to check the documentation at https://goreleaser.com
+# https://goreleaser.com
 
-# The lines below are called `modelines`. See `:help modeline`
-# Feel free to remove those if you don't want/need to use them.
 # yaml-language-server: $schema=https://goreleaser.com/static/schema.json
 # vim: set ts=2 sw=2 tw=0 fo=cnqoj
 
@@ -10,9 +7,7 @@ version: 2
 
 before:
   hooks:
-    # You may remove this if you don't use go modules.
     - sh -c 'cd mirrorctl && go mod tidy'
-    # you may remove this if you don't need go generate
     - sh -c 'cd mirrorctl && go generate ./...'
 
 builds:
@@ -25,6 +20,9 @@ builds:
       - linux
       - windows
       - darwin
+    goarch:
+      - amd64
+      - arm64
 
 archives:
   - formats: [tar.gz]
@@ -41,13 +39,19 @@ archives:
       - goos: windows
         formats: [zip]
 
-# Change the checksum filename:
+# Predictable checksum filename
 checksum:
   name_template: "checksums.txt"
 
-# Change the digests filename:
+# Predictable digests filename
 docker_digest:
   name_template: "digests.txt"
+
+sboms:
+  - id: mirrorctl
+    artifacts: binary
+    documents:
+      - "{{ .Binary }}_{{ .Os }}_{{ .Arch }}_{{ .Version }}_sbom.spdx.json"
 
 changelog:
   sort: asc
