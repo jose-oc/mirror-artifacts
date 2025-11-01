@@ -55,12 +55,11 @@ sboms:
 
 signs:
   - cmd: cosign
-    stdin: "{{ .Env.COSIGN_PWD }}"
     artifacts: checksum
     args:
       - "sign-blob"
-      - "--key=cosign.key"
-      - "--output-signature=${artifact}.sig"
+      - "--use-signing-config" # Use public Sigstore (Fulcio/Rekor)
+      - "--bundle=${artifact}.bundle" # Output the all-in-one bundle
       - "${artifact}"
       - "--yes"
 
