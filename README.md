@@ -36,12 +36,19 @@ brew install syft
 
 
 
-
+## Sign the release
+Install cosign
+```shell
 go install github.com/sigstore/cosign/v3/cmd/cosign@latest
+```
 
 Verify the signature
 ```shell
-cosign verify-blob --key cosign.pub --signature checksum.sig checksum
+cosign verify-blob \
+  --bundle checksums.txt.bundle \
+  --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
+  --certificate-identity-regexp "https://github.com/jose-oc/mirror-artifacts/.github/workflows/release.yml@refs/tags/.*" \
+  checksums.txt
 ```
 
 
