@@ -1,0 +1,23 @@
+name: Test latest mirrorctl release
+
+on:
+  workflow_dispatch:
+
+jobs:
+  run-latest-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download latest release asset
+        run: |
+          LATEST_RELEASE_URL=$(curl -s https://api.github.com/repos/${{ github.repository }}/releases/latest \
+            | jq -r '.assets[] | select(.name | test("Linux_x86_64\\.tar\\.gz$")) | .browser_download_url')
+
+          echo "Downloading from: $LATEST_RELEASE_URL"
+          curl -L -o mirrorctl.tar.gz "$LATEST_RELEASE_URL"
+
+      - name: Extract and run mirrorctl
+        run: |
+          tar -xzf mirrorctl.tar.gz
+          chmod +x ./bin/mirrorctl || true
+          ./bin/mirrorctl version
