@@ -17,11 +17,11 @@ builds:
     env:
       - CGO_ENABLED=0
     goos:
-      - linux
-      - windows
+#      - linux
+#      - windows
       - darwin
     goarch:
-      - amd64
+#      - amd64
       - arm64
 
 archives:
@@ -55,7 +55,14 @@ sboms:
 
 signs:
   - cmd: cosign
+    stdin: "{{ .Env.COSIGN_PWD }}"
     artifacts: checksum
+    args:
+      - "sign-blob"
+      - "--key=cosign.key"
+      - "--output-signature=${artifact}.sig"
+      - "${artifact}"
+      - "--yes"
 
 changelog:
   sort: asc

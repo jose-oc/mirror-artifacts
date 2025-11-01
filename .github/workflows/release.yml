@@ -34,6 +34,11 @@ jobs:
         with:
           cosign-release: "v3.0.2"
 
+      - name: Prepare cosign key
+        run: |
+          echo "${{ secrets.COSIGN_PRIVATE_KEY }}" > cosign.key
+          chmod 600 cosign.key
+
       - name: Run GoReleaser - Build binaries and generates a GH release
         uses: goreleaser/goreleaser-action@v6
         with:
@@ -42,6 +47,7 @@ jobs:
           args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COSIGN_PWD: ${{ secrets.COSIGN_PWD }}
 
 #      # After GoReleaser runs, attest all the files in ./dist/checksums.txt:
 #      - uses: actions/attest-build-provenance@v3
