@@ -6,7 +6,6 @@ on:
   push:
     tags:
       - 'v*'
-  workflow_dispatch:
 
 permissions:
   contents: write
@@ -27,6 +26,9 @@ jobs:
         with:
           go-version: stable
           cache: true
+
+      - name: Install syft
+        uses: anchore/sbom-action/download-syft@v0
 
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v6
