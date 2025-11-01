@@ -44,4 +44,10 @@ jobs:
           ./bin/mirrorctl version
 
       - name: Run mirrorctl
-        run: ./bin/mirrorctl mirror images --log-level=debug --prod-mode --images=images.yaml
+        run: ./bin/mirrorctl mirror images --log-level=debug --prod-mode --images=images.yaml > mirrorctl.log 2>&1
+
+      - name: Upload mirrorctl log
+        uses: actions/upload-artifact@v4
+        with:
+          name: mirrorctl-logs
+          path: mirrorctl.log
