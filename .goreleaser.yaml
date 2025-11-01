@@ -53,6 +53,10 @@ sboms:
     documents:
       - "{{ .Binary }}_{{ .Os }}_{{ .Arch }}_{{ .Version }}_sbom.spdx.json"
 
+signs:
+  - cmd: cosign
+    artifacts: checksum
+
 changelog:
   sort: asc
   filters:
