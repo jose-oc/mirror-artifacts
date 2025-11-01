@@ -51,7 +51,7 @@ sboms:
   - id: mirrorctl
     artifacts: binary
     documents:
-      - "{{ .Binary }}_{{ .Version }}_sbom.spdx.json"
+      - "{{ .Binary }}_{{ .Os }}_{{ .Arch }}_{{ .Version }}_sbom.spdx.json"
 
 changelog:
   sort: asc
