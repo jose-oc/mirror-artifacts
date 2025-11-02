@@ -53,7 +53,12 @@ jobs:
           ./bin/mirrorctl version
 
       - name: Run mirrorctl
-        run: ./bin/mirrorctl mirror charts --charts=helm-charts.yaml --dry-run --log-level=debug > mirrorctl.log 2>&1
+        run: |
+          EXTRA_ARGS=""
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            EXTRA_ARGS="--dry-run"
+          fi
+          ./bin/mirrorctl mirror charts --charts=helm-charts.yaml --log-level=debug $EXTRA_ARGS > mirrorctl.log 2>&1
 
       - name: Upload mirrorctl log
         uses: actions/upload-artifact@v4
