@@ -1,0 +1,33 @@
+name: Go Tests
+
+on:
+  pull_request:
+    paths:
+      - 'mirrorctl/**'
+
+jobs:
+  test-mirrorctl:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: '1.24'
+
+      - name: Go fmt
+        run: | 
+          cd mirrorctl
+          go fmt ./...
+          git diff --exit-code
+
+      - name: Go vet
+        run: |
+          cd mirrorctl
+          go vet ./...
+
+      - name: Go test
+        run: |
+          cd mirrorctl
+          go test -v ./...
