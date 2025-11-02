@@ -1,0 +1,4 @@
+charts:
+  - name: grafana-agent-operator
+    source: https://grafana.github.io/helm-charts
+    version: 0.5.1
