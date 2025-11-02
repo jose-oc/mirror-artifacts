@@ -93,11 +93,18 @@ func initConfig() {
 	viper.AutomaticEnv() // read in environment variables that match
 
 	// If a config file is found, read it in.
-	if err := viper.ReadInConfig(); err == nil {
+	if err := viper.ReadInConfig(); err != nil {
+		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
+			if cfgFile != "" {
+				log.Fatal().Err(err).Str("config_file", cfgFile).Msg("Specified config file not found")
+			} else {
+				log.Fatal().Err(err).Msg("No config file found in default paths (current directory or home directory)")
+			}
+		} else {
+			log.Fatal().Err(err).Msg("Failed to read config file")
+		}
+	} else {
 		log.Debug().Str("config_file", viper.ConfigFileUsed()).Msg("Using config file")
-	} else if cfgFile != "" {
-		log.Error().Err(err).Str("config_file", cfgFile).Msg("Failed to read config file")
 	}
-
 	logging.SetupLogger()
 }
