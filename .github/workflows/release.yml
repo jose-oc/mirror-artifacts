@@ -1,4 +1,4 @@
-name: Release the binaries
+name: Go release the binaries
 
 on:
 #  release:
