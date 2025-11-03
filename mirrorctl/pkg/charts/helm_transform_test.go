@@ -94,7 +94,7 @@ func TestMirrorTelegrafChart(t *testing.T) {
 
 	// Clean up output directory before test
 	os.RemoveAll(outputDir)
-	//defer os.RemoveAll(outputDir) // Clean up after test
+	defer os.RemoveAll(outputDir) // Clean up after test
 
 	// Create test configuration
 	chart := Chart{

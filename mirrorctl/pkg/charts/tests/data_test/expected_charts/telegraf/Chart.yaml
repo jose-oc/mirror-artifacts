@@ -1,7 +1,7 @@
 apiVersion: v2
 annotations:
   # --- Provenance Metadata ---
-  repackage.provenance/repackaged-by: "mirrorctl 0.1.0"
+  repackage.provenance/repackaged-by: "mirrorctl dev"
   repackage.provenance/original-chart-url: "https://helm.influxdata.com/"
   repackage.provenance/original-chart-name: "telegraf"
   repackage.provenance/original-chart-version: "1.8.28"

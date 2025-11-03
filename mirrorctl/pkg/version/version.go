@@ -4,4 +4,5 @@ package version
 var AppName = "mirrorctl"
 
 // Version is the version of the application.
-var Version = "0.1.0"
+// This will be overridden by goreleaser during the build process.
+var Version = "dev"

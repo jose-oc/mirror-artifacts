@@ -23,6 +23,8 @@ builds:
     goarch:
       - amd64
       - arm64
+    ldflags:
+      - -s -w -X github.com/jose-oc/mirror-artifacts/mirrorctl/pkg/version.Version={{.Version}}
 
 archives:
   - formats: [tar.gz]
