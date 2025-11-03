@@ -1,6 +1,6 @@
 annotations:
   # --- Provenance Metadata ---
-  repackage.provenance/repackaged-by: "mirrorctl 0.1.0"
+  repackage.provenance/repackaged-by: "mirrorctl dev"
   repackage.provenance/original-chart-url: "https://charts.bitnami.com/bitnami"
   repackage.provenance/original-chart-name: "mariadb"
   repackage.provenance/original-chart-version: "12.2.4"
