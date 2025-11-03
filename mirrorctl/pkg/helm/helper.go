@@ -1,4 +1,4 @@
-package charts
+package helm
 
 import (
 	"fmt"
@@ -9,7 +9,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-func createTempDir(ctx *appcontext.AppContext) (string, error) {
+func CreateTempDir(ctx *appcontext.AppContext) (string, error) {
 	// Create a temporary directory to download the chart
 	tmpDir, err := os.MkdirTemp("", fmt.Sprintf("%s-", version.AppName))
 	if err != nil {
