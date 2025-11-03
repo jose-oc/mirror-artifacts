@@ -3,6 +3,8 @@ package cmd
 import (
 	"fmt"
 
+	sbom_charts "github.com/jose-oc/mirror-artifacts/mirrorctl/pkg/sbom/charts"
+
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -21,6 +23,8 @@ var chartImagesCmd = &cobra.Command{
 			return
 		}
 		fmt.Printf("Listing images for charts in: %s\n", chartsFile)
+		imageList, _ := sbom_charts.ExtractImagesFromCharts(chartsFile)
+		log.Debug().Interface("images", imageList).Msg("Images extracted from charts")
 	},
 }
 
