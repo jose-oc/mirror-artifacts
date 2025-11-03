@@ -1,0 +1,67 @@
+name: Process Helm Charts and Push to GAR
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'helm-charts.yaml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'helm-charts.yaml'
+
+jobs:
+  copy-charts:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v3
+        with:
+          credentials_json: '${{ secrets.GCP_DEVOPS_SA_KEY_JSON }}'
+
+      - name: Set up Cloud SDK
+        uses: 'google-github-actions/setup-gcloud@v3'
+
+      - name: Configure Docker
+        run: gcloud auth configure-docker gcr.io,us-docker.pkg.dev,europe-southwest1-docker.pkg.dev --quiet
+
+      - name: Download latest release asset (Linux x86_64)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          LATEST_RELEASE_URL=$(curl -s -H "Authorization: token $GH_TOKEN" \
+            https://api.github.com/repos/${{ github.repository }}/releases/latest \
+            | jq -r '.assets[] | select(.name | test("Linux_x86_64\\.tar\\.gz$")) | .url')
+
+          echo "Asset API URL: $LATEST_RELEASE_URL"
+
+          curl -L -H "Authorization: token $GH_TOKEN" \
+               -H "Accept: application/octet-stream" \
+               "$LATEST_RELEASE_URL" \
+               -o mirrorctl.tar.gz
+
+      - name: Extract and run mirrorctl
+        run: |
+          tar -xzf mirrorctl.tar.gz
+          chmod +x ./bin/mirrorctl || true
+          ./bin/mirrorctl version
+
+      - name: Run mirrorctl
+        run: |
+          EXTRA_ARGS=""
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            EXTRA_ARGS="--dry-run"
+          fi
+          ./bin/mirrorctl mirror charts --charts=helm-charts.yaml --log-level=debug $EXTRA_ARGS > mirrorctl.log 2>&1
+
+      - name: Upload mirrorctl log
+        uses: actions/upload-artifact@v4
+        with:
+          name: mirrorctl-logs
+          path: mirrorctl.log

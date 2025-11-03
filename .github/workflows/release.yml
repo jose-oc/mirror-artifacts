@@ -30,6 +30,10 @@ jobs:
       - name: Install syft
         uses: anchore/sbom-action/download-syft@v0
 
+      - uses: sigstore/cosign-installer@main
+        with:
+          cosign-release: "v3.0.2"
+
       - name: Run GoReleaser - Build binaries and generates a GH release
         uses: goreleaser/goreleaser-action@v6
         with:

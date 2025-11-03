@@ -53,6 +53,18 @@ sboms:
     documents:
       - "{{ .Binary }}_{{ .Os }}_{{ .Arch }}_{{ .Version }}_sbom.spdx.json"
 
+signs:
+  - cmd: cosign
+    artifacts: checksum
+    output: true
+    signature: "${artifact}.bundle"
+    args:
+      - "sign-blob"
+      - "--use-signing-config" # Use public Sigstore (Fulcio/Rekor)
+      - "--bundle=${artifact}.bundle" # Output the all-in-one bundle
+      - "${artifact}"
+      - "--yes"
+
 changelog:
   sort: asc
   filters:
