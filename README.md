@@ -164,17 +164,15 @@ This will create a binary named `mirrorctl` in the current directory.
 Goreleaser builds binaries for all platforms, signs checksums, and publishes to GitHub. 
 This tool is typically used for official releases.
 
-First, install Goreleaser:
+First, install Goreleaser. On macOS, you can use Homebrew:
 ```shell
-brew install goreleaser/tap/goreleaser
+brew install --cask goreleaser/tap/goreleaser
 ```
+For other platforms, see the [Goreleaser documentation](https://goreleaser.com/install/).
 
 You have to run `goreleaser` from the root directory of the repository.
 
-For building binaries for all platforms (typically for releases):
-```shell
-goreleaser release --clean
-```
+#### Building
 
 If you just want to build a binary for your local platform, use:
 ```shell
@@ -186,3 +184,14 @@ If you made changes in the code, you can run `goreleaser build --single-target -
 This approach only builds for your current architecture and operating system, making it faster for local development and testing.
 
 The `--clean` flag cleans up the dist directory before building to ensure a clean build environment.
+
+#### Releasing
+
+It requires a couple of tools to be installed:
+- `syft`
+- `cosign`
+
+Building binaries for all platforms (typically for releases):
+```shell
+goreleaser release --clean
+```
