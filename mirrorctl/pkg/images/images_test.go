@@ -6,34 +6,35 @@ import (
 
 	"github.com/jose-oc/mirror-artifacts/mirrorctl/pkg/appcontext"
 	"github.com/jose-oc/mirror-artifacts/mirrorctl/pkg/config"
+	"github.com/jose-oc/mirror-artifacts/mirrorctl/pkg/types"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestGetImageTag(t *testing.T) {
 	tests := []struct {
 		name    string
-		img     Image
+		img     types.Image
 		want    string
 		wantErr bool
 	}{
 		{
 			name: "valid image with tag",
-			img:  Image{Source: "ubuntu:22.04"},
+			img:  types.Image{Source: "ubuntu:22.04"},
 			want: "22.04",
 		},
 		{
 			name:    "image without tag",
-			img:     Image{Source: "ubuntu"},
+			img:     types.Image{Source: "ubuntu"},
 			wantErr: true,
 		},
 		{
 			name:    "empty image source",
-			img:     Image{Source: ""},
+			img:     types.Image{Source: ""},
 			wantErr: true,
 		},
 		{
 			name: "image with latest tag",
-			img:  Image{Source: "ubuntu:latest"},
+			img:  types.Image{Source: "ubuntu:latest"},
 			want: "latest",
 		},
 	}
