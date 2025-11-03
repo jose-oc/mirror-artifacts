@@ -8,7 +8,7 @@ gcp:
   gar_repo_containers: europe-southwest1-docker.pkg.dev/poc-development-123456/test-container-images
 
 options:
-  suffix: "-devopstest"
+  suffix: "devopstest"
   keep_temp_dir: false
   notify_tag_mutations: true
 
