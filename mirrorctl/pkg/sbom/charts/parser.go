@@ -76,7 +76,7 @@ func extractImagesFromNode(node *yaml.Node, images *[]types.Image, parentKey str
 					//   registry: docker.io
 					//   repository: grafana/agent-operator
 					//   tag: v0.25.1
-					extractImageFromMapping(currentKey, valueNode, images)
+					extractImageFromMapping(valueNode, images)
 				}
 			} else if strings.ToLower(currentKey) == "images" && valueNode.Kind == yaml.SequenceNode {
 				// Image lists:
@@ -86,7 +86,7 @@ func extractImagesFromNode(node *yaml.Node, images *[]types.Image, parentKey str
 				//   - repository: busybox
 				for _, imgNode := range valueNode.Content {
 					if imgNode.Kind == yaml.MappingNode {
-						extractImageFromMapping(currentKey, imgNode, images)
+						extractImageFromMapping(imgNode, images)
 					}
 				}
 			}
@@ -98,7 +98,7 @@ func extractImagesFromNode(node *yaml.Node, images *[]types.Image, parentKey str
 }
 
 // extractImageFromMapping extracts image details from a mapping node (e.g., repository, registry, tag).
-func extractImageFromMapping(name string, node *yaml.Node, images *[]types.Image) {
+func extractImageFromMapping(node *yaml.Node, images *[]types.Image) {
 	var repository, registry, tag string
 	for i := 0; i < len(node.Content); i += 2 {
 		keyNode := node.Content[i]
