@@ -23,7 +23,8 @@ const (
 
 // WriteImagesToFile serializes and writes a list of images to a file in either JSON or YAML format.
 // The format is determined by the file extension (.json or .yaml/.yml).
-// Returns an error if marshaling or file writing fails.
+// It takes a slice of images and the output path as input.
+// It returns an error if marshaling or file writing fails.
 func WriteImagesToFile(images []types.Image, outputPath string) error {
 	imageList := types.ImagesList{Images: images}
 
@@ -52,7 +53,9 @@ func WriteImagesToFile(images []types.Image, outputPath string) error {
 	return nil
 }
 
-// getExportFormat determines the export format based on file extension
+// getExportFormat determines the export format from a file path extension.
+// It takes a file path as input.
+// It returns the export format and an error if the extension is not supported.
 func getExportFormat(filePath string) (ExportFormat, error) {
 	ext := strings.ToLower(filepath.Ext(filePath))
 	switch ext {
@@ -65,8 +68,9 @@ func getExportFormat(filePath string) (ExportFormat, error) {
 	}
 }
 
-// DeduplicateAndSortImages takes images grouped by chart and returns a deduplicated,
-// alphabetically sorted slice of unique images based on their source.
+// DeduplicateAndSortImages deduplicates and sorts a map of images.
+// It takes a map of strings to slices of images as input, where the keys are chart names and the values are slices of images.
+// It returns a slice of images containing the deduplicated and sorted images.
 func DeduplicateAndSortImages(imagesByChart map[string][]types.Image) []types.Image {
 	uniqueImages := make(map[string]types.Image)
 

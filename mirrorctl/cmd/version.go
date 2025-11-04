@@ -10,7 +10,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// versionCmd represents the version command
+// versionCmd represents the `version` command.
+// It is used to print the version of the application.
 var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Print the version of mirrorctl",
@@ -20,6 +21,7 @@ var versionCmd = &cobra.Command{
 	},
 }
 
+// init initializes the `version` command.
 func init() {
 	rootCmd.AddCommand(versionCmd)
 }

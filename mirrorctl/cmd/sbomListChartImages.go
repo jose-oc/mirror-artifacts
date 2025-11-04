@@ -6,7 +6,8 @@ import (
 	"github.com/spf13/viper"
 )
 
-// chartImagesCmd represents the chart-images command
+// chartImagesCmd represents the `chart-images` command.
+// It is used to list all the container images used by a Helm chart.
 var chartImagesCmd = &cobra.Command{
 	Use:   "chart-images",
 	Short: "List all images used by a Helm chart",
@@ -16,6 +17,7 @@ var chartImagesCmd = &cobra.Command{
 	},
 }
 
+// init initializes the `chart-images` command and its flags.
 func init() {
 	listCmd.AddCommand(chartImagesCmd)
 

@@ -55,13 +55,13 @@ func TestGetImageTag(t *testing.T) {
 
 func TestMirrorImages_NoImagesFile(t *testing.T) {
 	appCtx := &appcontext.AppContext{}
-	_, _, err := MirrorImages(appCtx, "")
+	_, _, err := MirrorImagesFromFile(appCtx, "")
 	assert.Error(t, err)
 }
 
 func TestMirrorImages_ImagesFileNotFound(t *testing.T) {
 	appCtx := &appcontext.AppContext{}
-	_, _, err := MirrorImages(appCtx, "non-existent-file.yaml")
+	_, _, err := MirrorImagesFromFile(appCtx, "non-existent-file.yaml")
 	assert.Error(t, err)
 }
 
@@ -73,7 +73,7 @@ func TestMirrorImages_InvalidYAML(t *testing.T) {
 	assert.NoError(t, err)
 	file.Close()
 
-	_, _, err = MirrorImages(appCtx, file.Name())
+	_, _, err = MirrorImagesFromFile(appCtx, file.Name())
 	assert.Error(t, err)
 }
 
@@ -97,7 +97,7 @@ images:
 	assert.NoError(t, err)
 	file.Close()
 
-	mirrored, digests, err := MirrorImages(appCtx, file.Name())
+	mirrored, digests, err := MirrorImagesFromFile(appCtx, file.Name())
 	assert.NoError(t, err)
 	assert.Equal(t, "us-central1-docker.pkg.dev/my-project/my-repo/ubuntu:22.04", mirrored["ubuntu:22.04"])
 	assert.Equal(t, "dry-run-digest", digests["ubuntu:22.04"])
@@ -115,6 +115,6 @@ images:
 	assert.NoError(t, err)
 	file.Close()
 
-	_, _, err = MirrorImages(appCtx, file.Name())
+	_, _, err = MirrorImagesFromFile(appCtx, file.Name())
 	assert.NoError(t, err) // The function itself doesn't return an error, it logs it
 }

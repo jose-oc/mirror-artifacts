@@ -4,7 +4,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// mirrorCmd represents the mirror command
+// mirrorCmd represents the mirror command, which is the parent of all mirror subcommands.
 var mirrorCmd = &cobra.Command{
 	Use:   "mirror",
 	Short: "Mirror artifacts to Google Artifact Registry",

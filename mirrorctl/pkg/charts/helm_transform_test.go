@@ -33,9 +33,9 @@ var ctx = appcontext.AppContext{
 }
 
 func TestMirrorMariadbChart(t *testing.T) {
-	inputDir := "tests/data_test/input_charts/mariadb"
-	expectedDir := "tests/data_test/expected_charts/mariadb"
-	outputDir := "tests/data_test/output_charts/mariadb"
+	inputDir := "../../resources/data_test/input_charts/mariadb"
+	expectedDir := "../../resources/data_test/expected_charts/mariadb"
+	outputDir := "../../resources/data_test/output_charts/mariadb"
 
 	// Clean up output directory before test
 	os.RemoveAll(outputDir)
@@ -61,9 +61,9 @@ func TestMirrorMariadbChart(t *testing.T) {
 
 func TestMirrorLokiChart(t *testing.T) {
 	// Setup test directories
-	inputDir := "tests/data_test/input_charts/loki"
-	expectedDir := "tests/data_test/expected_charts/loki"
-	outputDir := "tests/data_test/output_charts/loki"
+	inputDir := "../../resources/data_test/input_charts/loki"
+	expectedDir := "../../resources/data_test/expected_charts/loki"
+	outputDir := "../../resources/data_test/output_charts/loki"
 
 	// Clean up output directory before test
 	os.RemoveAll(outputDir)
@@ -89,9 +89,9 @@ func TestMirrorLokiChart(t *testing.T) {
 
 func TestMirrorTelegrafChart(t *testing.T) {
 	// Setup test directories
-	inputDir := "tests/data_test/input_charts/telegraf"
-	expectedDir := "tests/data_test/expected_charts/telegraf"
-	outputDir := "tests/data_test/output_charts/telegraf"
+	inputDir := "../../resources/data_test/input_charts/telegraf"
+	expectedDir := "../../resources/data_test/expected_charts/telegraf"
+	outputDir := "../../resources/data_test/output_charts/telegraf"
 
 	// Clean up output directory before test
 	os.RemoveAll(outputDir)
@@ -119,9 +119,9 @@ func TestMirrorTelegrafChart(t *testing.T) {
 //	// TODO this test is currently failing. It should work once the new chart values.yaml is covered.
 //	// Gemini, all the tests in this file should work fine once you've modified the helm_transform.go code to cover this new scenario
 //	// Setup test directories
-//	inputDir := "tests/data_test/input_charts/grafana-agent-operator"
-//	expectedDir := "tests/data_test/expected_charts/grafana-agent-operator"
-//	outputDir := "tests/data_test/output_charts/grafana-agent-operator"
+//	inputDir := "../../resources/data_test/input_charts/grafana-agent-operator"
+//	expectedDir := "../../resources/data_test/expected_charts/grafana-agent-operator"
+//	outputDir := "../../resources/data_test/output_charts/grafana-agent-operator"
 //
 //	// Clean up output directory before test
 //	os.RemoveAll(outputDir)
@@ -286,7 +286,7 @@ description: Loki is a horizontally scalable log aggregation system`,
 				t.Fatalf("Failed to create test file: %v", err)
 			}
 
-			err = processChartYaml(srcPath, destPath, tt.suffix, tt.originalChartURL)
+			err = processChartYAML(srcPath, destPath, tt.suffix, tt.originalChartURL)
 			if err != nil {
 				t.Fatalf("processChartYaml failed: %v", err)
 			}
@@ -398,7 +398,7 @@ func TestProcessValuesYaml(t *testing.T) {
 			}
 
 			// Process the file
-			err = processValuesYaml(srcPath, destPath, tt.registryURL)
+			err = processValuesYAML(srcPath, destPath, tt.registryURL)
 			if err != nil {
 				t.Fatalf("processValuesYaml failed: %v", err)
 			}

@@ -10,7 +10,9 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-// ScanChart scans a Helm chart directory for Docker images.
+// ScanChart scans a Helm chart directory for container images.
+// It walks through the directory, parses YAML files, and extracts image references.
+// It returns a slice of unique images found in the chart.
 func ScanChart(chartPath string) ([]types.Image, error) {
 	uniqueImages := make(map[string]types.Image)
 
@@ -27,7 +29,7 @@ func ScanChart(chartPath string) ([]types.Image, error) {
 
 		if filepath.Ext(path) == ".yaml" || filepath.Ext(path) == ".yml" {
 			log.Trace().Msgf("Parsing YAML file: %s", path)
-			images, err := parseYAMLFile(path)
+			images, err := parseYAML(path)
 			if err != nil {
 				log.Warn().Err(err).Msgf("Failed to parse YAML file: %s", path)
 				return nil // Don't stop the walk, just skip this file

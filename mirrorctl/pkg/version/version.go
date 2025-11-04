@@ -1,8 +1,8 @@
 package version
 
-// AppName is the application name.
+// AppName is the name of the application.
 var AppName = "mirrorctl"
 
 // Version is the version of the application.
-// This will be overridden by goreleaser during the build process.
+// It is set at build time using ldflags.
 var Version = "dev"

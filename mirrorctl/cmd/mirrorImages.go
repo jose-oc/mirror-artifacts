@@ -6,7 +6,8 @@ import (
 	"github.com/spf13/viper"
 )
 
-// mirrorImagesCmd represents the images command
+// mirrorImagesCmd represents the `mirror images` command.
+// It is used to mirror a list of container images to a Google Artifact Registry.
 var mirrorImagesCmd = &cobra.Command{
 	Use:   "images",
 	Short: "Mirror container images to GAR",
@@ -16,6 +17,7 @@ var mirrorImagesCmd = &cobra.Command{
 	},
 }
 
+// init initializes the `mirror images` command and its flags.
 func init() {
 	mirrorCmd.AddCommand(mirrorImagesCmd)
 	mirrorImagesCmd.Flags().String("images", "", "Path to YAML file with list of container images")

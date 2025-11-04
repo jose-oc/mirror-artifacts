@@ -176,6 +176,9 @@ func MirrorImageList(ctx *appcontext.AppContext, imagesList types.ImagesList) (m
 	return mirroredImages, imageDigests, nil
 }
 
+// getImageTag extracts the tag from an image source string.
+// It takes an image object as input.
+// It returns the image tag and an error if the tag cannot be extracted.
 func getImageTag(img types.Image) (string, error) {
 	if img.Source == "" {
 		return "", fmt.Errorf("image source cannot be empty")

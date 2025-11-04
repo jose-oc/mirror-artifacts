@@ -14,8 +14,10 @@ var (
 	templatedValueRegex = regexp.MustCompile(`{{.*}}`)
 )
 
-// parseYAMLFile parses a YAML file and extracts image references.
-func parseYAMLFile(filePath string) ([]types.Image, error) {
+// parseYAML parses a YAML file and returns a list of container images found in the file.
+// It takes the path to the YAML file as input.
+// It returns a slice of Image objects and an error if the file cannot be parsed.
+func parseYAML(filePath string) ([]types.Image, error) {
 	data, err := os.ReadFile(filePath)
 	if err != nil {
 		return nil, err
@@ -32,7 +34,8 @@ func parseYAMLFile(filePath string) ([]types.Image, error) {
 	return images, nil
 }
 
-// extractImagesFromNode recursively traverses a YAML node and extracts image references.
+// extractImagesFromNode recursively traverses a YAML node and extracts container image information.
+// It takes a YAML node, a pointer to a slice of images, and the parent key as input.
 func extractImagesFromNode(node *yaml.Node, images *[]types.Image, parentKey string) {
 	if node == nil {
 		return
@@ -97,7 +100,8 @@ func extractImagesFromNode(node *yaml.Node, images *[]types.Image, parentKey str
 	}
 }
 
-// extractImageFromMapping extracts image details from a mapping node (e.g., repository, registry, tag).
+// extractImageFromMapping extracts container image information from a YAML mapping node.
+// It takes a YAML mapping node and a pointer to a slice of images as input.
 func extractImageFromMapping(node *yaml.Node, images *[]types.Image) {
 	var repository, registry, tag string
 	for i := 0; i < len(node.Content); i += 2 {
@@ -143,11 +147,14 @@ func extractImageFromMapping(node *yaml.Node, images *[]types.Image) {
 	log.Debug().Str("name", imageName).Str("source", source).Msg("extracted image")
 }
 
-// isTemplatedValue checks if a string contains a Helm templated value.
+// isTemplatedValue checks if a string is a Helm template value.
+// It takes a string as input and returns true if the string is a template value, false otherwise.
 func isTemplatedValue(value string) bool {
 	return templatedValueRegex.MatchString(value)
 }
 
+// extractImageName extracts the image name from a container image source string.
+// It takes an image source string as input and returns the image name.
 func extractImageName(source string) string {
 	// Remove tag/digest
 	name := source

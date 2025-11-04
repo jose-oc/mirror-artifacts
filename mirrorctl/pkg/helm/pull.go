@@ -11,7 +11,10 @@ import (
 	"helm.sh/helm/v3/pkg/cli"
 )
 
-func PullHelmChart(ch types.Chart, tmpDir string) (string, error) {
+// PullChart pulls a Helm chart from a repository and saves it to a temporary directory.
+// It takes a chart object and the path to the temporary directory as input.
+// It returns the path to the pulled chart and an error if the pull fails.
+func PullChart(ch types.Chart, tmpDir string) (string, error) {
 	log.Debug().Str("chart", ch.Name).Str("version", ch.Version).Msg("Pulling chart")
 
 	chartPath, err := downloadChart(ch, tmpDir)
@@ -24,6 +27,9 @@ func PullHelmChart(ch types.Chart, tmpDir string) (string, error) {
 	return chartPath, nil
 }
 
+// downloadChart downloads a Helm chart from a repository.
+// It takes a chart object and the destination directory as input.
+// It returns the path to the downloaded chart and an error if the download fails.
 func downloadChart(chart types.Chart, destDir string) (string, error) {
 	log.Debug().Str("chart", chart.Name).Str("source", chart.Source).Msg("Downloading chart")
 

@@ -2,6 +2,7 @@ package charts
 
 import (
 	"fmt"
+
 	"github.com/jose-oc/mirror-artifacts/mirrorctl/pkg/appcontext"
 	"github.com/jose-oc/mirror-artifacts/mirrorctl/pkg/helm"
 	"github.com/jose-oc/mirror-artifacts/mirrorctl/pkg/types"
@@ -53,7 +54,7 @@ func mirrorChart(ctx *appcontext.AppContext, chart types.Chart) error {
 		return err
 	}
 
-	srcChartPath, err := helm.PullHelmChart(chart, tmpDir)
+	srcChartPath, err := helm.PullChart(chart, tmpDir)
 	if err != nil {
 		return err
 	}
@@ -68,7 +69,7 @@ func mirrorChart(ctx *appcontext.AppContext, chart types.Chart) error {
 		return err
 	}
 
-	if err := pushHelmChart(ctx, pkgChartPath, chart.Name, chart.Version); err != nil {
+	if err := pushChart(ctx, pkgChartPath, chart.Name, chart.Version); err != nil {
 		return err
 	}
 

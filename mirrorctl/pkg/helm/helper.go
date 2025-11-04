@@ -9,6 +9,9 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+// CreateTempDir creates a temporary directory for downloading Helm charts.
+// It takes an application context as input.
+// It returns the path to the temporary directory and an error if the directory cannot be created.
 func CreateTempDir(ctx *appcontext.AppContext) (string, error) {
 	// Create a temporary directory to download the chart
 	tmpDir, err := os.MkdirTemp("", fmt.Sprintf("%s-", version.AppName))
