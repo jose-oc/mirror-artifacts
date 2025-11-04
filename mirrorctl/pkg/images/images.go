@@ -10,23 +10,13 @@ import (
 	"strings"
 
 	"github.com/jose-oc/mirror-artifacts/mirrorctl/pkg/appcontext"
+	"github.com/jose-oc/mirror-artifacts/mirrorctl/pkg/types"
 	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v3"
 	"oras.land/oras-go/v2"
 	"oras.land/oras-go/v2/registry/remote"
 	"oras.land/oras-go/v2/registry/remote/auth"
 )
-
-// Image represents an entry in images.yaml
-type Image struct {
-	Name   string `yaml:"name"`
-	Source string `yaml:"source"`
-}
-
-// ImagesList represents the structure of images.yaml
-type ImagesList struct {
-	Images []Image `yaml:"images"`
-}
 
 // MirrorImages mirrors container images to GAR
 // It reads the images from the provided YAML file, authenticates with Google Artifact Registry,
@@ -53,7 +43,7 @@ func MirrorImages(ctx *appcontext.AppContext, imagesFile string) (map[string]str
 		log.Error().Err(err).Str("file", imagesFile).Msg("Failed to read images file")
 		return nil, nil, err
 	}
-	var imagesList ImagesList
+	var imagesList types.ImagesList
 	if err := yaml.Unmarshal(data, &imagesList); err != nil {
 		log.Error().Err(err).Str("file", imagesFile).Msg("Failed to parse images file")
 		return nil, nil, err
@@ -171,7 +161,7 @@ func MirrorImages(ctx *appcontext.AppContext, imagesFile string) (map[string]str
 	return mirroredImages, imageDigests, nil
 }
 
-func getImageTag(img Image) (string, error) {
+func getImageTag(img types.Image) (string, error) {
 	if img.Source == "" {
 		return "", fmt.Errorf("image source cannot be empty")
 	}

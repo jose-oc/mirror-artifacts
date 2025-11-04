@@ -26,6 +26,7 @@ var rootCmd = &cobra.Command{
 	It supports provenance tracking.`,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		var err error
+		viper.BindPFlags(cmd.Flags())
 		cfg, err = config.LoadConfig()
 		if err != nil {
 			log.Fatal().Err(err).Msg("Failed to load configuration")

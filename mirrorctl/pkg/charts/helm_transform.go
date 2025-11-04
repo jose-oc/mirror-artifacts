@@ -25,6 +25,7 @@ import (
 	"time"
 
 	"github.com/jose-oc/mirror-artifacts/mirrorctl/pkg/appcontext"
+	"github.com/jose-oc/mirror-artifacts/mirrorctl/pkg/types"
 	"github.com/jose-oc/mirror-artifacts/mirrorctl/pkg/version"
 	"github.com/rs/zerolog/log"
 )
@@ -62,7 +63,7 @@ type ProvenanceMetadata struct {
 // TransformHelmChart processes a Helm chart from a source path, modifies it, and saves it to an output path.
 // Modifications include updating the Chart.yaml with a version suffix and provenance annotations,
 // and updating the values.yaml to point to a new container registry.
-func TransformHelmChart(ctx *appcontext.AppContext, chart Chart, srcChartPath string, outputPath ...string) (string, error) {
+func TransformHelmChart(ctx *appcontext.AppContext, chart types.Chart, srcChartPath string, outputPath ...string) (string, error) {
 	var transformedChartPath string
 	if len(outputPath) == 0 {
 		transformedChartPath = fmt.Sprintf("%s-%s", srcChartPath, time.Now().Format("20060102150405.1234"))

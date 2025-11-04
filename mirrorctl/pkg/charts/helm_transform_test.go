@@ -11,6 +11,7 @@ import (
 
 	"github.com/jose-oc/mirror-artifacts/mirrorctl/pkg/appcontext"
 	"github.com/jose-oc/mirror-artifacts/mirrorctl/pkg/config"
+	"github.com/jose-oc/mirror-artifacts/mirrorctl/pkg/types"
 	"github.com/rs/zerolog/log"
 )
 
@@ -41,7 +42,7 @@ func TestMirrorMariadbChart(t *testing.T) {
 	defer os.RemoveAll(outputDir) // Clean up after test
 
 	// Execute the mirroring
-	chart := Chart{
+	chart := types.Chart{
 		Name:    "mariadb",
 		Source:  "https://charts.bitnami.com/bitnami",
 		Version: "12.2.4",
@@ -69,7 +70,7 @@ func TestMirrorLokiChart(t *testing.T) {
 	defer os.RemoveAll(outputDir) // Clean up after test
 
 	// Create test configuration
-	chart := Chart{
+	chart := types.Chart{
 		Name:    "loki",
 		Source:  "https://grafana.github.io/helm-charts",
 		Version: "5.5.2",
@@ -97,7 +98,7 @@ func TestMirrorTelegrafChart(t *testing.T) {
 	defer os.RemoveAll(outputDir) // Clean up after test
 
 	// Create test configuration
-	chart := Chart{
+	chart := types.Chart{
 		Name:    "telegraf",
 		Source:  "https://helm.influxdata.com/",
 		Version: "1.8.28",
@@ -127,7 +128,7 @@ func TestMirrorTelegrafChart(t *testing.T) {
 //	defer os.RemoveAll(outputDir) // Clean up after test
 //
 //	// Create test configuration
-//	chart := Chart{
+//	chart := types.Chart{
 //		Name:    "grafana-agent-operator",
 //		Source:  "https://grafana.github.io/helm-charts",
 //		Version: "0.5.1",

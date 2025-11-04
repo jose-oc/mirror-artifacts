@@ -2,12 +2,14 @@ package charts
 
 import (
 	"github.com/jose-oc/mirror-artifacts/mirrorctl/pkg/appcontext"
+	"github.com/jose-oc/mirror-artifacts/mirrorctl/pkg/helm"
+	"github.com/jose-oc/mirror-artifacts/mirrorctl/pkg/types"
 	"github.com/rs/zerolog/log"
 )
 
 // MirrorHelmCharts mirrors Helm charts to GAR
 func MirrorHelmCharts(ctx *appcontext.AppContext, chartsFile string) error {
-	chartsList, err := loadChartsList(chartsFile)
+	chartsList, err := LoadChartsList(chartsFile)
 	if err != nil {
 		return err
 	}
@@ -22,15 +24,15 @@ func MirrorHelmCharts(ctx *appcontext.AppContext, chartsFile string) error {
 	return nil
 }
 
-func mirrorHelmChart(ctx *appcontext.AppContext, chart Chart) error {
+func mirrorHelmChart(ctx *appcontext.AppContext, chart types.Chart) error {
 	log.Debug().Str("chart", chart.Name).Str("version", chart.Version).Msg("Mirroring chart")
 
-	tmpDir, err := createTempDir(ctx)
+	tmpDir, err := helm.CreateTempDir(ctx)
 	if err != nil {
 		return err
 	}
 
-	srcChartPath, err := pullHelmChart(chart, tmpDir)
+	srcChartPath, err := helm.PullHelmChart(chart, tmpDir)
 	if err != nil {
 		return err
 	}

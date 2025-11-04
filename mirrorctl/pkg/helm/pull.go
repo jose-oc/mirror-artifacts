@@ -1,16 +1,17 @@
-package charts
+package helm
 
 import (
 	"fmt"
 	"os"
 	"path/filepath"
 
+	"github.com/jose-oc/mirror-artifacts/mirrorctl/pkg/types"
 	"github.com/rs/zerolog/log"
 	"helm.sh/helm/v3/pkg/action"
 	"helm.sh/helm/v3/pkg/cli"
 )
 
-func pullHelmChart(ch Chart, tmpDir string) (string, error) {
+func PullHelmChart(ch types.Chart, tmpDir string) (string, error) {
 	log.Debug().Str("chart", ch.Name).Str("version", ch.Version).Msg("Pulling chart")
 
 	chartPath, err := downloadChart(ch, tmpDir)
@@ -23,7 +24,7 @@ func pullHelmChart(ch Chart, tmpDir string) (string, error) {
 	return chartPath, nil
 }
 
-func downloadChart(chart Chart, destDir string) (string, error) {
+func downloadChart(chart types.Chart, destDir string) (string, error) {
 	log.Debug().Str("chart", chart.Name).Str("source", chart.Source).Msg("Downloading chart")
 
 	settings := cli.New()

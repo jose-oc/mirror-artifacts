@@ -1,9 +1,16 @@
 package cmdutils
 
 import (
+	"errors"
+	"fmt"
+	"path/filepath"
+	"strings"
+
 	"github.com/jose-oc/mirror-artifacts/mirrorctl/pkg/appcontext"
 	"github.com/jose-oc/mirror-artifacts/mirrorctl/pkg/charts"
+	"github.com/jose-oc/mirror-artifacts/mirrorctl/pkg/datastructures"
 	"github.com/jose-oc/mirror-artifacts/mirrorctl/pkg/images"
+	"github.com/jose-oc/mirror-artifacts/mirrorctl/pkg/sbom/chartscanner"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -35,4 +42,37 @@ func MirrorCharts(ctx *appcontext.AppContext, cmd *cobra.Command) {
 	if err := charts.MirrorHelmCharts(ctx, chartsFile); err != nil {
 		log.Fatal().Err(err).Msg("Failed to mirror charts")
 	}
+}
+
+var ErrMissingRequiredParam = errors.New("missing required parameter")
+
+func ExtractImagesFromHelmCharts(ctx *appcontext.AppContext, cmd *cobra.Command) error {
+	chartsFile := viper.GetString("charts")
+	outputFile := viper.GetString("output-file")
+
+	if chartsFile == "" {
+		return fmt.Errorf("%w: %s", ErrMissingRequiredParam, "charts file path")
+	}
+	ext := strings.ToLower(filepath.Ext(outputFile))
+	if ext != ".json" && ext != ".yaml" && ext != ".yml" {
+		return fmt.Errorf("unsupported file extension: %s, must be .json, .yaml or .yml", ext)
+	}
+
+	log.Debug().Msgf("Listing images for charts in: %s\n", chartsFile)
+	imageListByChart, err := chartscanner.ExtractImagesFromCharts(ctx, chartsFile)
+	if err != nil {
+		return fmt.Errorf("failed to extract images from charts: %w", err)
+	}
+	log.Info().Interface("images", imageListByChart).Msg("Images extracted from charts")
+
+	if outputFile != "" {
+		sortedImages := datastructures.DeduplicateAndSortImages(imageListByChart)
+
+		err := datastructures.WriteImagesToFile(sortedImages, outputFile)
+		if err != nil {
+			return fmt.Errorf("failed to write images to file %s: %w", outputFile, err)
+		}
+	}
+
+	return nil
 }
