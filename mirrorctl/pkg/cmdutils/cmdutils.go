@@ -50,12 +50,9 @@ func ExtractImagesFromHelmCharts(ctx *appcontext.AppContext, cmd *cobra.Command)
 	chartsFile := viper.GetString("charts")
 	outputFile := viper.GetString("output-file")
 
-	if chartsFile == "" {
-		return fmt.Errorf("%w: %s", ErrMissingRequiredParam, "charts file path")
-	}
-	ext := strings.ToLower(filepath.Ext(outputFile))
-	if ext != ".json" && ext != ".yaml" && ext != ".yml" {
-		return fmt.Errorf("unsupported file extension: %s, must be .json, .yaml or .yml", ext)
+	err := validateFlagsExtractImagesFromHelmCharts(chartsFile, outputFile)
+	if err != nil {
+		return err
 	}
 
 	log.Debug().Msgf("Listing images for charts in: %s\n", chartsFile)
@@ -74,5 +71,23 @@ func ExtractImagesFromHelmCharts(ctx *appcontext.AppContext, cmd *cobra.Command)
 		}
 	}
 
+	return nil
+}
+
+// validateFlagsExtractImagesFromHelmCharts validates the flags passed to the `ExtractImagesFromHelmCharts` function
+// These are:
+// - chartsFile: Path to the yaml charts file
+// - outputFile: (Optional) Path to the output file, it has to have the .json, .yml or .yaml extension
+// Returns an error if the flags are invalid
+func validateFlagsExtractImagesFromHelmCharts(chartsFile string, outputFile string) error {
+	if chartsFile == "" {
+		return fmt.Errorf("%w: %s", ErrMissingRequiredParam, "charts file path")
+	}
+	if outputFile != "" {
+		ext := strings.ToLower(filepath.Ext(outputFile))
+		if ext != ".json" && ext != ".yaml" && ext != ".yml" {
+			return fmt.Errorf("unsupported file extension: %s, must be .json, .yaml or .yml", ext)
+		}
+	}
 	return nil
 }
