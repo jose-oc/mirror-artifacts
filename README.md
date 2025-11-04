@@ -122,6 +122,20 @@ Example:
 mirrorctl mirror charts --charts helm-charts.yaml
 ```
 
+#### Generate SBOM from Charts Command
+
+This command generates Software Bill of Materials (SBOM) for a list of Helm charts. 
+The SBOM is a list of all container images used by the charts, even if certain conditions are required for the image to used.
+The SBOM can be saved in a file in JSON or YAML format.
+
+- `--charts`: Path to YAML file with a list of Helm charts
+- `--output-file`: Path to the output file in JSON or YAML format
+
+Example:
+```shell
+mirrorctl sbom list chart-images --charts=charts.yaml --output-file=charts-images-sbom.yaml
+```
+
 ## Input File Format
 
 The input files for `mirrorctl` use YAML format to define artifacts to be mirrored:
