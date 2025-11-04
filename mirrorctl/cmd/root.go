@@ -47,6 +47,7 @@ func Execute() {
 	}
 }
 
+// init initializes the command-line flags and binds them to viper.
 func init() {
 	cobra.OnInitialize(initConfig)
 
@@ -61,6 +62,10 @@ func init() {
 	rootCmd.PersistentFlags().String("log-file", "", "If set, writes logs to the specified file path instead of the console.")
 	rootCmd.PersistentFlags().BoolVar(&dryRun, "dry-run", false, "Simulate actions without executing")
 	rootCmd.PersistentFlags().BoolVar(&keepTempDir, "keep-temp-dir", false, "Keep temporary directories for inspection")
+	rootCmd.PersistentFlags().Bool("verbose", false, "Enable verbose output.")
+	rootCmd.PersistentFlags().Bool("quiet", false, "Suppress all output.")
+
+	rootCmd.MarkFlagsMutuallyExclusive("verbose", "quiet")
 
 	// Bind the flag to viper so it can be accessed via viper
 	_ = viper.BindPFlag("prod_mode", rootCmd.PersistentFlags().Lookup("prod-mode"))
@@ -69,6 +74,8 @@ func init() {
 	_ = viper.BindPFlag("log_file", rootCmd.PersistentFlags().Lookup("log-file"))
 	_ = viper.BindPFlag("dry_run", rootCmd.PersistentFlags().Lookup("dry-run"))
 	_ = viper.BindPFlag("options.keep_temp_dir", rootCmd.PersistentFlags().Lookup("keep-temp-dir"))
+	_ = viper.BindPFlag("verbose", rootCmd.PersistentFlags().Lookup("verbose"))
+	_ = viper.BindPFlag("quiet", rootCmd.PersistentFlags().Lookup("quiet"))
 }
 
 // initConfig reads in config file and ENV variables if set.
@@ -107,5 +114,10 @@ func initConfig() {
 	} else {
 		log.Debug().Str("config_file", viper.ConfigFileUsed()).Msg("Using config file")
 	}
+	initLoggers()
+}
+
+// initLoggers initializes the logging system.
+func initLoggers() {
 	logging.SetupLogger()
 }

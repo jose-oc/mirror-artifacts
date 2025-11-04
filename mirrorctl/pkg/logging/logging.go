@@ -30,7 +30,7 @@ func (h CallerHook) Run(e *zerolog.Event, level zerolog.Level, _ string) {
 
 func SetupLogger() {
 	zerolog.TimeFieldFormat = time.RFC3339Nano
-	logLevel, err := zerolog.ParseLevel(viper.GetString("log-level"))
+	logLevel, err := zerolog.ParseLevel(viper.GetString("log_level"))
 	if err != nil {
 		logLevel = zerolog.InfoLevel
 	}
@@ -51,7 +51,7 @@ func SetupLogger() {
 		consoleWriter := zerolog.ConsoleWriter{
 			Out:        output,
 			TimeFormat: "15:04.0000",
-			NoColor:    !viper.GetBool("log-color"),
+			NoColor:    !viper.GetBool("log_color"),
 		}
 		logger = zerolog.New(consoleWriter).With().Timestamp().Logger()
 	}

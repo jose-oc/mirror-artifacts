@@ -8,12 +8,12 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-// MirrorHelmCharts mirrors Helm charts to GAR, returning lists of successful and failed charts.
-//
-// Returns:
-// 1. []string: List of successfully mirrored charts (Name:Version).
-// 2. []string: List of charts that failed to mirror (Name:Version).
-// 3. error: Any error encountered during the initial loading of the charts list.
+// MirrorHelmCharts mirrors a list of Helm charts to a Google Artifact Registry.
+// It takes an application context and the path to a file containing the list of charts to mirror.
+// It returns three values:
+// - A slice of strings containing the names of the charts that were successfully mirrored.
+// - A slice of strings containing the names of the charts that failed to be mirrored.
+// - An error if the file containing the list of charts could not be read.
 func MirrorHelmCharts(ctx *appcontext.AppContext, chartsFile string) ([]string, []string, error) {
 	chartsList, err := LoadChartsList(chartsFile)
 	if err != nil {
@@ -29,7 +29,7 @@ func MirrorHelmCharts(ctx *appcontext.AppContext, chartsFile string) ([]string, 
 		// Format the chart identifier as "name:version" for the lists
 		chartDetail := fmt.Sprintf("%s:%s", ch.Name, ch.Version)
 
-		if err := mirrorHelmChart(ctx, ch); err != nil {
+		if err := mirrorChart(ctx, ch); err != nil {
 			log.Error().Err(err).Str("chart", ch.Name).Msg("Failed to mirror chart")
 			failedCharts = append(failedCharts, chartDetail) // Add to failed list
 			continue
@@ -42,8 +42,10 @@ func MirrorHelmCharts(ctx *appcontext.AppContext, chartsFile string) ([]string, 
 	return successfulCharts, failedCharts, nil
 }
 
-// mirrorHelmChart handles the single chart logic
-func mirrorHelmChart(ctx *appcontext.AppContext, chart types.Chart) error {
+// mirrorChart mirrors a single Helm chart to a Google Artifact Registry.
+// It takes an application context and a Chart object as input.
+// It returns an error if the chart could not be mirrored.
+func mirrorChart(ctx *appcontext.AppContext, chart types.Chart) error {
 	log.Debug().Str("chart", chart.Name).Str("version", chart.Version).Msg("Mirroring chart")
 
 	tmpDir, err := helm.CreateTempDir(ctx)

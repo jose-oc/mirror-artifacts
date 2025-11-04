@@ -24,11 +24,10 @@ import (
 	"oras.land/oras-go/v2/registry/remote/auth"
 )
 
-// pushHelmChart pushes a packaged Helm chart (.tgz or .tar.gz) to Google Artifact Registry (GAR) using ORAS.
-// Authentication is done with the `gcloud access token` command.
-// It pushes the chart as an OCI artifact with manifest annotations.
-// It can also run in a dry-run mode, in which no data is pushed.
-func pushHelmChart(ctx *appcontext.AppContext, packagedChartPath string, chartName string, chartVersion string) error {
+// pushChart pushes a packaged Helm chart to a Google Artifact Registry.
+// It takes an application context, the path to the packaged chart, the chart name, and the chart version as input.
+// It returns an error if the chart could not be pushed.
+func pushChart(ctx *appcontext.AppContext, packagedChartPath string, chartName string, chartVersion string) error {
 	log.Debug().Str("chart_path", packagedChartPath).Msg("Pushing chart to GAR")
 
 	chartFilename := filepath.Base(packagedChartPath)
@@ -166,8 +165,8 @@ func pushHelmChart(ctx *appcontext.AppContext, packagedChartPath string, chartNa
 	return nil
 }
 
-// stripArchiveExtension removes common archive extensions from a filename.
-// Example: "mychart-1.2.3.tgz" -> "mychart-1.2.3"
+// stripArchiveExtension removes the archive extension from a file name.
+// It takes a file name as input and returns the file name without the extension.
 func stripArchiveExtension(name string) string {
 	name = strings.TrimSpace(name)
 	lower := strings.ToLower(name)
