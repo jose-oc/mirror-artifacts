@@ -1,14 +1,14 @@
 package types
 
-// Image represents an entry in images.yaml
+// Image represents a container image
 type Image struct {
-	Name   string `yaml:"name"`
-	Source string `yaml:"source"`
+	Name   string `yaml:"name" json:"name"`
+	Source string `yaml:"source" json:"source"`
 }
 
-// ImagesList represents the structure of images.yaml
+// ImagesList represents a collection of container images
 type ImagesList struct {
-	Images []Image `yaml:"images"`
+	Images []Image `yaml:"images" json:"images"`
 }
 
 // Chart represents an entry in the charts.yaml file
