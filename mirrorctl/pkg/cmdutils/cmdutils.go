@@ -41,8 +41,9 @@ func MirrorCharts(ctx *appcontext.AppContext, cmd *cobra.Command) error {
 	if ctx.DryRun {
 		log.Info().Msg("Running in dry-run mode: nothing will be mirrored to GAR")
 	}
-	if err := charts.MirrorHelmCharts(ctx, chartsFile); err != nil {
-		return fmt.Errorf("Failed to mirror charts: %w", err)
+	successfulCharts, failedCharts, err := charts.MirrorHelmCharts(ctx, chartsFile)
+	if err != nil {
+		return fmt.Errorf("failed to mirror charts: %w", err)
 	}
 
 	if !viper.GetBool("skip_image_mirroring") {
@@ -67,6 +68,11 @@ func MirrorCharts(ctx *appcontext.AppContext, cmd *cobra.Command) error {
 			values = append(values, value)
 		}
 		fmt.Println("Images pushed:\n", strings.Join(values, "\n "))
+	}
+
+	fmt.Println("Charts pushed:\n", strings.Join(successfulCharts, "\n"))
+	if len(failedCharts) > 0 {
+		fmt.Println("Charts failed to push:\n", strings.Join(failedCharts, "\n"))
 	}
 
 	return nil
