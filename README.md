@@ -115,11 +115,23 @@ mirrorctl mirror images --images images.yaml
 ```
 
 #### Mirror Charts Command
+
+This command mirrors a list of Helm charts to a Google Artifact Registry. 
+It points the container images in the charts to the mirrored registry.
+Also, adds some metadata to the charts to provide provenance.
+
+Automatically, it gathers the list of container images used by the charts and mirrors them to the target registry too. 
+This ensures that the charts are fully reproducible. 
+This step is optional and can be skipped by using the `--skip-image-mirroring` flag.
+
 - `--charts`: Path to YAML file with list of Helm charts
 
-Example:
+Examples:
 ```shell
 mirrorctl mirror charts --charts helm-charts.yaml
+mirrorctl mirror charts --charts helm-charts.yaml --dry-run
+mirrorctl mirror charts --charts helm-charts.yaml --keep-temp-dir
+mirrorctl mirror charts --charts helm-charts.yaml --skip-image-mirroring
 ```
 
 #### Generate SBOM from Charts Command

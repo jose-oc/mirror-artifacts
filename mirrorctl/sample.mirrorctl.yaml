@@ -8,9 +8,10 @@ gcp:
   gar_repo_containers: europe-southwest1-docker.pkg.dev/poc-development-123456/test-container-images
 
 options:
-  suffix: "devopstest"
-  keep_temp_dir: false
-  notify_tag_mutations: true
+  suffix: "devopstest" # Suffix added to chart tags
+  keep_temp_dir: false # Do not delete the temporary directory used for mirroring for further inspection
+  notify_tag_mutations: true  # Notify when an image tag is pointing to a different digest
+skip_image_mirroring: false # Skip automatic image mirroring when mirroring charts
 
 prod-mode: false
 log-color: true

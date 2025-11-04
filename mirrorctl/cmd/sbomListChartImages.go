@@ -23,5 +23,5 @@ func init() {
 	_ = viper.BindPFlag("charts", chartImagesCmd.Flags().Lookup("charts"))
 
 	chartImagesCmd.Flags().String("output-file", "", "Path to file to store the list of images (e.g., images.yaml, images.json)")
-	_ = viper.BindPFlag("output-file", chartImagesCmd.Flags().Lookup("output-file"))
+	_ = viper.BindPFlag("output_file", chartImagesCmd.Flags().Lookup("output-file"))
 }
