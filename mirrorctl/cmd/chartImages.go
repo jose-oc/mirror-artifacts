@@ -11,8 +11,8 @@ var chartImagesCmd = &cobra.Command{
 	Use:   "chart-images",
 	Short: "List all images used by a Helm chart",
 	Long:  `This command lists all container images referenced within a given Helm chart or a set of charts defined in a YAML file.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		cmdutils.ExtractImagesFromHelmCharts(ctx, cmd)
+	RunE: func(cmd *cobra.Command, args []string) error {
+		return cmdutils.ExtractImagesFromHelmCharts(ctx, cmd)
 	},
 }
 

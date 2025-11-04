@@ -2,6 +2,7 @@ package cmdutils
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -47,61 +48,76 @@ func MirrorCharts(ctx *appcontext.AppContext, cmd *cobra.Command) {
 	}
 }
 
-func ExtractImagesFromHelmCharts(ctx *appcontext.AppContext, cmd *cobra.Command) {
+var ErrMissingRequiredParam = errors.New("missing required parameter")
+
+func ExtractImagesFromHelmCharts(ctx *appcontext.AppContext, cmd *cobra.Command) error {
 	chartsFile := viper.GetString("charts")
 	outputFile := viper.GetString("output-file")
 
-	log.Debug().Msgf("Charts file: %s", chartsFile)
 	if chartsFile == "" {
-		fmt.Println("Error: --charts flag is required")
-		return
+		return fmt.Errorf("%w: %s", ErrMissingRequiredParam, "charts file path")
 	}
 
-	fmt.Printf("Listing images for charts in: %s\n", chartsFile)
+	log.Debug().Msgf("Listing images for charts in: %s\n", chartsFile)
 	imageListByChart, err := chartscanner.ExtractImagesFromCharts(ctx, chartsFile)
 	if err != nil {
-		log.Error().Err(err).Msg("Failed to extract images from charts")
-		return
+		return fmt.Errorf("failed to extract images from charts: %w", err)
 	}
 	log.Info().Interface("images", imageListByChart).Msg("Images extracted from charts")
 
 	if outputFile != "" {
-		allImages := make(map[string]types.Image)
-		for _, images := range imageListByChart {
-			for _, image := range images {
-				allImages[image.Source] = image
-			}
-		}
+		sortedImages := flattenAndSortImageList(imageListByChart)
 
-		var sortedImages []types.Image
-		for _, image := range allImages {
-			sortedImages = append(sortedImages, image)
-		}
-
-		sort.Slice(sortedImages, func(i, j int) bool {
-			return sortedImages[i].Source < sortedImages[j].Source
-		})
-
-		imagesList := types.ImagesList{Images: sortedImages}
-
-		var out []byte
-		ext := filepath.Ext(outputFile)
-		if strings.ToLower(ext) == ".json" {
-			out, err = json.MarshalIndent(imagesList, "", "  ")
-		} else {
-			out, err = yaml.Marshal(imagesList)
-		}
-
+		err := writeImageListIntoFileJsonOrYaml(sortedImages, outputFile)
 		if err != nil {
-			log.Error().Err(err).Msg("Failed to marshal images list")
-			return
+			return fmt.Errorf("failed to write images to file %s: %w", outputFile, err)
 		}
-
-		err = os.WriteFile(outputFile, out, 0644)
-		if err != nil {
-			log.Error().Err(err).Str("file", outputFile).Msg("Failed to write images to file")
-			return
-		}
-		log.Info().Str("file", outputFile).Msg("Wrote images to file")
 	}
+
+	return nil
+}
+
+func writeImageListIntoFileJsonOrYaml(sortedImages []types.Image, outputFile string) error {
+	imagesList := types.ImagesList{Images: sortedImages}
+
+	var out []byte
+	var err error
+	ext := filepath.Ext(outputFile)
+	if strings.ToLower(ext) == ".json" {
+		out, err = json.MarshalIndent(imagesList, "", "  ")
+	} else {
+		out, err = yaml.Marshal(imagesList)
+	}
+
+	if err != nil {
+		//log.Error().Err(err).Msg("Failed to marshal images list")
+		return fmt.Errorf("failed to marshal images list: %w", err)
+	}
+
+	err = os.WriteFile(outputFile, out, 0644)
+	if err != nil {
+		//log.Error().Err(err).Str("file", outputFile).Msg("Failed to write images to file")
+		return fmt.Errorf("failed to write images to file %s: %w", outputFile, err)
+	}
+	log.Info().Str("file", outputFile).Msg("Wrote images to file")
+	return nil
+}
+
+func flattenAndSortImageList(imageListByChart map[string][]types.Image) []types.Image {
+	allImages := make(map[string]types.Image)
+	for _, imgs := range imageListByChart {
+		for _, image := range imgs {
+			allImages[image.Source] = image
+		}
+	}
+
+	var sortedImages []types.Image
+	for _, image := range allImages {
+		sortedImages = append(sortedImages, image)
+	}
+
+	sort.Slice(sortedImages, func(i, j int) bool {
+		return sortedImages[i].Source < sortedImages[j].Source
+	})
+	return sortedImages
 }
