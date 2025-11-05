@@ -31,5 +31,6 @@ go.work.sum
 # .idea/
 # .vscode/
 
+resources/data_test/output_charts
 mirrorctl
 .mirrorctl.yaml
