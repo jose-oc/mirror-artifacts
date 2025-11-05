@@ -24,6 +24,6 @@ func init() {
 	chartImagesCmd.Flags().String("charts", "", "Path to YAML file with list of Helm charts")
 	_ = viper.BindPFlag("charts", chartImagesCmd.Flags().Lookup("charts"))
 
-	chartImagesCmd.Flags().String("output-file", "", "Path to file to store the list of images (e.g., images.yaml, images.json)")
-	_ = viper.BindPFlag("output_file", chartImagesCmd.Flags().Lookup("output-file"))
+	chartImagesCmd.Flags().String("output-dir", "", "Directory path to store the list of images per chart")
+	_ = viper.BindPFlag("output_dir", chartImagesCmd.Flags().Lookup("output-dir"))
 }

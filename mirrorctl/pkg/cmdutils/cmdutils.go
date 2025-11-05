@@ -3,8 +3,6 @@ package cmdutils
 import (
 	"errors"
 	"fmt"
-	"path/filepath"
-	"strings"
 
 	"github.com/jose-oc/mirror-artifacts/mirrorctl/pkg/appcontext"
 	"github.com/jose-oc/mirror-artifacts/mirrorctl/pkg/charts"
@@ -97,9 +95,9 @@ var ErrMissingRequiredParam = errors.New("missing required parameter")
 // It returns an error if the extraction fails.
 func ExtractImagesFromHelmCharts(ctx *appcontext.AppContext, cmd *cobra.Command) error {
 	chartsFile := viper.GetString("charts")
-	outputFile := viper.GetString("output-file")
+	outputDir := viper.GetString("output_dir")
 
-	err := validateFlagsExtractImagesFromHelmCharts(chartsFile, outputFile)
+	err := validateFlagsExtractImagesFromHelmCharts(chartsFile, outputDir)
 	if err != nil {
 		return err
 	}
@@ -111,12 +109,10 @@ func ExtractImagesFromHelmCharts(ctx *appcontext.AppContext, cmd *cobra.Command)
 	}
 	log.Info().Interface("images", imageListByChart).Msg("Images extracted from charts")
 
-	if outputFile != "" {
-		sortedImages := datastructures.DeduplicateAndSortImages(imageListByChart)
-
-		err := datastructures.WriteImagesToFile(sortedImages, outputFile)
+	if outputDir != "" {
+		err := datastructures.WriteImagesToFilePerChart(imageListByChart, outputDir)
 		if err != nil {
-			return fmt.Errorf("failed to write images to file %s: %w", outputFile, err)
+			return fmt.Errorf("failed to write images to directory %s: %w", outputDir, err)
 		}
 	}
 
@@ -126,17 +122,17 @@ func ExtractImagesFromHelmCharts(ctx *appcontext.AppContext, cmd *cobra.Command)
 // validateFlagsExtractImagesFromHelmCharts validates the flags for the `extract-images-from-helm-charts` command.
 // It takes the charts file path and the output file path as input.
 // It returns an error if the flags are invalid.
-func validateFlagsExtractImagesFromHelmCharts(chartsFile string, outputFile string) error {
+func validateFlagsExtractImagesFromHelmCharts(chartsFile string, outputDir string) error {
 	err := validateChartsFlag(chartsFile)
 	if err != nil {
 		return err
 	}
-	if outputFile != "" {
-		ext := strings.ToLower(filepath.Ext(outputFile))
-		if ext != ".json" && ext != ".yaml" && ext != ".yml" {
-			return fmt.Errorf("unsupported file extension: %s, must be .json, .yaml or .yml", ext)
-		}
-	}
+	//if outputDir != "" {
+	//	ext := strings.ToLower(filepath.Ext(outputDir))
+	//	if ext != ".json" && ext != ".yaml" && ext != ".yml" {
+	//		return fmt.Errorf("unsupported file extension: %s, must be .json, .yaml or .yml", ext)
+	//	}
+	//}
 	return nil
 }
 

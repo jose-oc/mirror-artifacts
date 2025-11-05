@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/jose-oc/mirror-artifacts/mirrorctl/pkg/types"
 	"github.com/rs/zerolog/log"
@@ -93,4 +94,41 @@ func DeduplicateAndSortImages(imagesByChart map[string][]types.Image) []types.Im
 	})
 
 	return result
+}
+
+// WriteImagesToFilePerChart writes a list of images to a file for each chart.
+// It takes a map of strings to slices of images as input, where the keys are chart names and the values are slices of images.
+// It returns an error if writing the file fails.
+func WriteImagesToFilePerChart(imageListByChart map[string][]types.Image, outputDir string) error {
+	// 1. Ensure the output directory exists
+	if err := os.MkdirAll(outputDir, 0755); err != nil {
+		return fmt.Errorf("failed to create output directory %s: %w", outputDir, err)
+	}
+
+	// Get the current time for the filename timestamp
+	timestamp := time.Now().Format("20060102-150405")
+
+	// 2. Iterate over the map, where key is chartName and value is the list of images
+	for chartName, images := range imageListByChart {
+		// 3. Marshal the list of images (the value) into JSON format
+		// The output file should contain a JSON array of image objects.
+		jsonData, err := json.MarshalIndent(images, "", "  ")
+		if err != nil {
+			return fmt.Errorf("failed to marshal images for chart %s: %w", chartName, err)
+		}
+
+		// 4. Construct the output filename
+		// Format: sbom-images-for-chart-CHARTNAME-YYYYMMDD-HHMMSS.json
+		filename := fmt.Sprintf("sbom-images-for-chart-%s-%s.json", chartName, timestamp)
+
+		// 5. Construct the full file path
+		filePath := filepath.Join(outputDir, filename)
+
+		// 6. Write the JSON data to the file
+		if err := os.WriteFile(filePath, jsonData, 0644); err != nil {
+			return fmt.Errorf("failed to write file %s: %w", filePath, err)
+		}
+	}
+
+	return nil
 }
