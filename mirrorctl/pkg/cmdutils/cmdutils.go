@@ -19,17 +19,28 @@ import (
 
 // MirrorImages mirrors a list of container images to a Google Artifact Registry.
 // It takes an application context and a cobra command as input.
-func MirrorImages(ctx *appcontext.AppContext, _ *cobra.Command) {
+func MirrorImages(ctx *appcontext.AppContext, _ *cobra.Command) error {
 	imagesFile := viper.GetString("images")
 	if imagesFile == "" {
-		log.Fatal().Msg("Images file path is required, please provide via --images flag")
+		log.Error().Msg("Images file path is required, please provide via --images flag")
+		return errors.New("images file path is required, please provide via --images flag")
 	}
 	if ctx.DryRun {
 		log.Info().Msg("Dry-run: Would mirror images to GAR")
 	}
-	if _, _, err := images.MirrorImagesFromFile(ctx, imagesFile); err != nil {
-		log.Fatal().Err(err).Msg("Failed to mirror images")
+	imagesPushed, _, err := images.MirrorImagesFromFile(ctx, imagesFile)
+	if err != nil {
+		log.Error().Err(err).Msg("Failed to mirror images")
+		return fmt.Errorf("failed to mirror images: %w", err)
 	}
+
+	var imagesPushedGar []string
+	for _, img := range imagesPushed {
+		imagesPushedGar = append(imagesPushedGar, img)
+	}
+	PrintImagesPushed(imagesPushedGar)
+	PrintDryRunMessage(ctx)
+	return nil
 }
 
 // MirrorCharts mirrors a list of Helm charts and their associated container images to a Google Artifact Registry.
@@ -62,7 +73,7 @@ func MirrorCharts(ctx *appcontext.AppContext, cmd *cobra.Command) error {
 		imagesList.Images = sortedImages
 		imagesPushed, _, err := images.MirrorImages(ctx, imagesList)
 		if err != nil {
-			return fmt.Errorf("Failed to mirror images: %w", err)
+			return fmt.Errorf("failed to mirror images: %w", err)
 		}
 		log.Debug().Interface("images pushed", imagesPushed).Msg("Mirroring images")
 

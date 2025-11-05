@@ -12,8 +12,8 @@ var mirrorImagesCmd = &cobra.Command{
 	Use:   "images",
 	Short: "Mirror container images to GAR",
 	Long:  `Mirrors container images specified in a YAML file to Google Artifact Registry.`,
-	Run: func(cmd *cobra.Command, args []string) {
-		cmdutils.MirrorImages(ctx, cmd)
+	RunE: func(cmd *cobra.Command, args []string) error {
+		return cmdutils.MirrorImages(ctx, cmd)
 	},
 }
 
