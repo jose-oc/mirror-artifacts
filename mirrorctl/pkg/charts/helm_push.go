@@ -24,11 +24,10 @@ import (
 	"oras.land/oras-go/v2/registry/remote/auth"
 )
 
-// pushHelmChart pushes a packaged Helm chart (.tgz or .tar.gz) to Google Artifact Registry (GAR) using ORAS.
-// Authentication is done with the `gcloud access token` command.
-// It pushes the chart as an OCI artifact with manifest annotations.
-// It can also run in a dry-run mode, in which no data is pushed.
-func pushHelmChart(ctx *appcontext.AppContext, packagedChartPath string, chartName string, chartVersion string) error {
+// pushChart pushes a packaged Helm chart to a Google Artifact Registry.
+// It takes an application context, the path to the packaged chart, the chart name, and the chart version as input.
+// It returns an error if the chart could not be pushed.
+func pushChart(ctx *appcontext.AppContext, packagedChartPath string, chartName string, chartVersion string) error {
 	log.Debug().Str("chart_path", packagedChartPath).Msg("Pushing chart to GAR")
 
 	chartFilename := filepath.Base(packagedChartPath)
@@ -45,7 +44,7 @@ func pushHelmChart(ctx *appcontext.AppContext, packagedChartPath string, chartNa
 			Str("chart_path", packagedChartPath).
 			Str("repo", repoRef).
 			Str("tag", tag).
-			Msg("Running in dry-run mode: chart push to GAR omitted.")
+			Msg("Running in dry-run mode: chart push to GAR skipped.")
 		log.Info().
 			Msgf("To push manually, run:\noras push %s %s:application/vnd.cncf.helm.chart.content.v1.tar+gzip --annotation mirrorctl/repackaged-by=%s/%s",
 				repoRef,
@@ -166,8 +165,8 @@ func pushHelmChart(ctx *appcontext.AppContext, packagedChartPath string, chartNa
 	return nil
 }
 
-// stripArchiveExtension removes common archive extensions from a filename.
-// Example: "mychart-1.2.3.tgz" -> "mychart-1.2.3"
+// stripArchiveExtension removes the archive extension from a file name.
+// It takes a file name as input and returns the file name without the extension.
 func stripArchiveExtension(name string) string {
 	name = strings.TrimSpace(name)
 	lower := strings.ToLower(name)
@@ -189,17 +188,9 @@ func stripArchiveExtension(name string) string {
 	}
 }
 
-// buildRepositoryReference normalizes a base repository string (possibly containing scheme
-// or a "/v2" prefix) and guarantees a reference that includes an image name at the end.
-// baseRepo may be any of:
-//   - "europe-southwest1-docker.pkg.dev/poc-dev-123/my-repo"
-//   - "https://europe-southwest1-docker.pkg.dev/v2/poc-dev-123/my-repo"
-//   - "europe-southwest1-docker.pkg.dev/poc-dev-123/my-repo/my-image" (already contains image)
-//
-// If baseRepo already has an "image" segment (i.e., at least 4 path segments after host),
-// it will be returned (after stripping scheme and /v2). Otherwise, imageName will be appended.
-//
-// This ensures ORAS will address: HOST/PROJECT/REPOSITORY/IMAGE
+// buildRepositoryReference builds a repository reference for a given base repository and image name.
+// It takes a base repository and an image name as input.
+// It returns a string containing the repository reference.
 func buildRepositoryReference(baseRepo string, imageName string) string {
 	ref := strings.TrimSpace(baseRepo)
 	ref = strings.TrimPrefix(ref, "https://")

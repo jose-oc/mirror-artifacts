@@ -8,7 +8,8 @@ import (
 	"github.com/spf13/viper"
 )
 
-// mirrorChartsCmd represents the mirrorCharts command
+// mirrorChartsCmd represents the `mirror charts` command.
+// It is used to mirror a list of Helm charts to a Google Artifact Registry.
 var mirrorChartsCmd = &cobra.Command{
 	Use:   "charts",
 	Short: "Mirror Helm charts to GAR",
@@ -18,6 +19,7 @@ var mirrorChartsCmd = &cobra.Command{
 	},
 }
 
+// init initializes the `mirror charts` command and its flags.
 func init() {
 	mirrorCmd.AddCommand(mirrorChartsCmd)
 	mirrorChartsCmd.Flags().String("charts", "", "Path to YAML file with list of Helm charts")

@@ -2,14 +2,16 @@ package charts
 
 import (
 	"fmt"
+
 	"github.com/jose-oc/mirror-artifacts/mirrorctl/pkg/appcontext"
 	"github.com/jose-oc/mirror-artifacts/mirrorctl/pkg/helm"
 	"github.com/jose-oc/mirror-artifacts/mirrorctl/pkg/types"
 	"github.com/rs/zerolog/log"
 )
 
-// MirrorHelmCharts mirrors Helm charts to GAR, returning lists of successful and failed charts.
-//
+// MirrorHelmCharts mirrors a list of Helm charts to a Google Artifact Registry.
+// It takes an application context and the path to a file containing the list of charts to mirror.
+
 // Returns:
 // 1. []string: List of successfully mirrored charts (Name:Version).
 // 2. []string: List of charts that failed to mirror (Name:Version).
@@ -29,7 +31,7 @@ func MirrorHelmCharts(ctx *appcontext.AppContext, chartsFile string) ([]string, 
 		// Format the chart identifier as "name:version" for the lists
 		chartDetail := fmt.Sprintf("%s:%s", ch.Name, ch.Version)
 
-		if err := mirrorHelmChart(ctx, ch); err != nil {
+		if err := mirrorChart(ctx, ch); err != nil {
 			log.Error().Err(err).Str("chart", ch.Name).Msg("Failed to mirror chart")
 			failedCharts = append(failedCharts, chartDetail) // Add to failed list
 			continue
@@ -42,8 +44,10 @@ func MirrorHelmCharts(ctx *appcontext.AppContext, chartsFile string) ([]string, 
 	return successfulCharts, failedCharts, nil
 }
 
-// mirrorHelmChart handles the single chart logic
-func mirrorHelmChart(ctx *appcontext.AppContext, chart types.Chart) error {
+// mirrorChart mirrors a single Helm chart to a Google Artifact Registry.
+// It takes an application context and a Chart object as input.
+// It returns an error if the chart could not be mirrored.
+func mirrorChart(ctx *appcontext.AppContext, chart types.Chart) error {
 	log.Debug().Str("chart", chart.Name).Str("version", chart.Version).Msg("Mirroring chart")
 
 	tmpDir, err := helm.CreateTempDir(ctx)
@@ -51,7 +55,7 @@ func mirrorHelmChart(ctx *appcontext.AppContext, chart types.Chart) error {
 		return err
 	}
 
-	srcChartPath, err := helm.PullHelmChart(chart, tmpDir)
+	srcChartPath, err := helm.PullChart(chart, tmpDir)
 	if err != nil {
 		return err
 	}
@@ -66,7 +70,7 @@ func mirrorHelmChart(ctx *appcontext.AppContext, chart types.Chart) error {
 		return err
 	}
 
-	if err := pushHelmChart(ctx, pkgChartPath, chart.Name, chart.Version); err != nil {
+	if err := pushChart(ctx, pkgChartPath, chart.Name, chart.Version); err != nil {
 		return err
 	}
 

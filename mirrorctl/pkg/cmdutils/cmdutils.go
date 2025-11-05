@@ -17,21 +17,35 @@ import (
 	"github.com/spf13/viper"
 )
 
-// MirrorImages handles the `mirror images` subcommand
-func MirrorImages(ctx *appcontext.AppContext, _ *cobra.Command) {
+// MirrorImages mirrors a list of container images to a Google Artifact Registry.
+// It takes an application context and a cobra command as input.
+func MirrorImages(ctx *appcontext.AppContext, _ *cobra.Command) error {
 	imagesFile := viper.GetString("images")
 	if imagesFile == "" {
-		log.Fatal().Msg("Images file path is required, please provide via --images flag")
+		log.Error().Msg("Images file path is required, please provide via --images flag")
+		return errors.New("images file path is required, please provide via --images flag")
 	}
 	if ctx.DryRun {
 		log.Info().Msg("Dry-run: Would mirror images to GAR")
 	}
-	if _, _, err := images.MirrorImages(ctx, imagesFile); err != nil {
-		log.Fatal().Err(err).Msg("Failed to mirror images")
+	imagesPushed, _, err := images.MirrorImagesFromFile(ctx, imagesFile)
+	if err != nil {
+		log.Error().Err(err).Msg("Failed to mirror images")
+		return fmt.Errorf("failed to mirror images: %w", err)
 	}
+
+	var imagesPushedGar []string
+	for _, img := range imagesPushed {
+		imagesPushedGar = append(imagesPushedGar, img)
+	}
+	PrintImagesPushed(imagesPushedGar)
+	PrintDryRunMessage(ctx)
+	return nil
 }
 
-// MirrorCharts handles the `mirror charts` subcommand
+// MirrorCharts mirrors a list of Helm charts and their associated container images to a Google Artifact Registry.
+// It takes an application context and a cobra command as input.
+// It returns an error if the mirroring fails.
 func MirrorCharts(ctx *appcontext.AppContext, cmd *cobra.Command) error {
 	chartsFile := viper.GetString("charts")
 	err := validateChartsFlag(chartsFile)
@@ -57,29 +71,30 @@ func MirrorCharts(ctx *appcontext.AppContext, cmd *cobra.Command) error {
 		sortedImages := datastructures.DeduplicateAndSortImages(imageListByChart)
 		var imagesList types.ImagesList
 		imagesList.Images = sortedImages
-		imagesPushed, _, err := images.MirrorImageList(ctx, imagesList)
+		imagesPushed, _, err := images.MirrorImages(ctx, imagesList)
 		if err != nil {
-			return fmt.Errorf("Failed to mirror images: %w", err)
+			return fmt.Errorf("failed to mirror images: %w", err)
 		}
 		log.Debug().Interface("images pushed", imagesPushed).Msg("Mirroring images")
 
-		var values []string
-		for _, value := range imagesPushed {
-			values = append(values, value)
+		var imagesPushedGar []string
+		for _, img := range imagesPushed {
+			imagesPushedGar = append(imagesPushedGar, img)
 		}
-		fmt.Println("Images pushed:\n", strings.Join(values, "\n "))
+		PrintImagesPushed(imagesPushedGar)
 	}
 
-	fmt.Println("Charts pushed:\n", strings.Join(successfulCharts, "\n"))
-	if len(failedCharts) > 0 {
-		fmt.Println("Charts failed to push:\n", strings.Join(failedCharts, "\n"))
-	}
+	PrintChartsPushed(successfulCharts, failedCharts)
+	PrintDryRunMessage(ctx)
 
 	return nil
 }
 
 var ErrMissingRequiredParam = errors.New("missing required parameter")
 
+// ExtractImagesFromHelmCharts extracts the container images from a list of Helm charts.
+// It takes an application context and a cobra command as input.
+// It returns an error if the extraction fails.
 func ExtractImagesFromHelmCharts(ctx *appcontext.AppContext, cmd *cobra.Command) error {
 	chartsFile := viper.GetString("charts")
 	outputFile := viper.GetString("output-file")
@@ -108,11 +123,9 @@ func ExtractImagesFromHelmCharts(ctx *appcontext.AppContext, cmd *cobra.Command)
 	return nil
 }
 
-// validateFlagsExtractImagesFromHelmCharts validates the flags passed to the `ExtractImagesFromHelmCharts` function
-// These are:
-// - chartsFile: Path to the yaml charts file
-// - outputFile: (Optional) Path to the output file, it has to have the .json, .yml or .yaml extension
-// Returns an error if the flags are invalid
+// validateFlagsExtractImagesFromHelmCharts validates the flags for the `extract-images-from-helm-charts` command.
+// It takes the charts file path and the output file path as input.
+// It returns an error if the flags are invalid.
 func validateFlagsExtractImagesFromHelmCharts(chartsFile string, outputFile string) error {
 	err := validateChartsFlag(chartsFile)
 	if err != nil {
@@ -127,6 +140,9 @@ func validateFlagsExtractImagesFromHelmCharts(chartsFile string, outputFile stri
 	return nil
 }
 
+// validateChartsFlag validates the `--charts` flag.
+// It takes the charts file path as input.
+// It returns an error if the flag is invalid.
 func validateChartsFlag(chartsFile string) error {
 	if chartsFile == "" {
 		return fmt.Errorf("%w: %s", ErrMissingRequiredParam, "charts file path")

@@ -60,9 +60,10 @@ type ProvenanceMetadata struct {
 	Timestamp            string
 }
 
-// TransformHelmChart processes a Helm chart from a source path, modifies it, and saves it to an output path.
-// Modifications include updating the Chart.yaml with a version suffix and provenance annotations,
-// and updating the values.yaml to point to a new container registry.
+// TransformHelmChart copies a Helm chart from a source path to a destination path,
+// and transforms it by updating the Chart.yaml and values.yaml files.
+// It takes an application context, a chart object, and the source path of the chart as input.
+// It returns the path to the transformed chart and an error if the transformation fails.
 func TransformHelmChart(ctx *appcontext.AppContext, chart types.Chart, srcChartPath string, outputPath ...string) (string, error) {
 	var transformedChartPath string
 	if len(outputPath) == 0 {
@@ -103,13 +104,13 @@ func TransformHelmChart(ctx *appcontext.AppContext, chart types.Chart, srcChartP
 		case "Chart.yaml":
 			// Only process the root Chart.yaml
 			if filepath.Dir(relPath) == "." {
-				return processChartYaml(path, destPath, ctx.Config.Options.Suffix, chart.Source)
+				return processChartYAML(path, destPath, ctx.Config.Options.Suffix, chart.Source)
 			}
 			return copyFile(path, destPath)
 		case "values.yaml":
 			// Only process the root values.yaml, skip sub-chart values.yaml files
 			if filepath.Dir(relPath) == "." {
-				return processValuesYaml(path, destPath, ctx.Config.GCP.GARRepoCharts)
+				return processValuesYAML(path, destPath, ctx.Config.GCP.GARRepoCharts)
 			}
 			return copyFile(path, destPath)
 		default:
@@ -129,9 +130,11 @@ func TransformHelmChart(ctx *appcontext.AppContext, chart types.Chart, srcChartP
 	return transformedChartPath, nil
 }
 
-// processChartYaml reads a Chart.yaml file, updates its version, adds provenance annotations,
-// and writes the modified content to a destination path.
-func processChartYaml(srcPath, destPath, versionSuffix, originalChartURL string) error {
+// processChartYAML processes the Chart.yaml file of a Helm chart.
+// It updates the version of the chart by appending a suffix, and adds provenance annotations.
+// It takes the source path of the Chart.yaml file, the destination path, the version suffix, and the original chart URL as input.
+// It returns an error if the processing fails.
+func processChartYAML(srcPath, destPath, versionSuffix, originalChartURL string) error {
 	content, err := os.ReadFile(srcPath)
 	if err != nil {
 		return fmt.Errorf("failed to read Chart.yaml: %w", err)
@@ -158,7 +161,9 @@ func processChartYaml(srcPath, destPath, versionSuffix, originalChartURL string)
 	return os.WriteFile(destPath, []byte(modified), 0644)
 }
 
-// extractVersion extracts the chart version from the content of a Chart.yaml file.
+// extractVersion extracts the version of a Helm chart from the content of a Chart.yaml file.
+// It takes the content of the Chart.yaml file as input.
+// It returns the version of the chart as a string.
 func extractVersion(content string) string {
 	matches := versionRegex.FindStringSubmatch(content)
 	if len(matches) > 1 {
@@ -167,7 +172,9 @@ func extractVersion(content string) string {
 	return ""
 }
 
-// extractChartName extracts the chart name from the content of a Chart.yaml file.
+// extractChartName extracts the name of a Helm chart from the content of a Chart.yaml file.
+// It takes the content of the Chart.yaml file as input.
+// It returns the name of the chart as a string.
 func extractChartName(content string) string {
 	nameRegex := regexp.MustCompile(`(?m)^name:\s*(.+)$`)
 	matches := nameRegex.FindStringSubmatch(content)
@@ -177,7 +184,9 @@ func extractChartName(content string) string {
 	return ""
 }
 
-// replaceVersion appends a suffix to the chart version in the content of a Chart.yaml file.
+// replaceVersion replaces the version of a Helm chart in the content of a Chart.yaml file.
+// It takes the content of the Chart.yaml file and a version suffix as input.
+// It returns the modified content of the Chart.yaml file as a string.
 func replaceVersion(content string, versionSuffix string) string {
 	return versionRegex.ReplaceAllStringFunc(content, func(match string) string {
 		parts := strings.SplitN(match, ":", 2)
@@ -190,8 +199,9 @@ func replaceVersion(content string, versionSuffix string) string {
 	})
 }
 
-// addProvenanceAnnotations adds a set of provenance annotations to the Chart.yaml content.
-// It either adds them to an existing 'annotations' section or creates one if it doesn't exist.
+// addProvenanceAnnotations adds provenance annotations to the content of a Chart.yaml file.
+// It takes the content of the Chart.yaml file and a ProvenanceMetadata object as input.
+// It returns the modified content of the Chart.yaml file as a string.
 func addProvenanceAnnotations(content string, provenance ProvenanceMetadata) string {
 	lines := strings.Split(content, "\n")
 	var result []string
@@ -260,7 +270,9 @@ func addProvenanceAnnotations(content string, provenance ProvenanceMetadata) str
 	return strings.Join(result, "\n")
 }
 
-// handleGlobalImageDotRegistry handles the case of 'global.image.registry'.
+// handleGlobalImageDotRegistry handles the `global.image.registry` field in a values.yaml file.
+// It takes a line of the values.yaml file, the registry URL, and a pointer to a boolean as input.
+// It returns the modified line and a boolean indicating whether the line was modified.
 func handleGlobalImageDotRegistry(line string, registryURL string, inImageSection *bool) (string, bool) {
 	if globalImageSectionRegex.MatchString(line) {
 		*inImageSection = true
@@ -281,7 +293,9 @@ func handleGlobalImageDotRegistry(line string, registryURL string, inImageSectio
 	return line, false
 }
 
-// handleGlobalImageRegistry handles the case of 'global.imageRegistry'.
+// handleGlobalImageRegistry handles the `global.imageRegistry` field in a values.yaml file.
+// It takes a line of the values.yaml file and the registry URL as input.
+// It returns the modified line and a boolean indicating whether the line was modified.
 func handleGlobalImageRegistry(line string, registryURL string) (string, bool) {
 	if imageRegistryRegex.MatchString(line) {
 		indent := line[:strings.Index(line, "imageRegistry")]
@@ -290,8 +304,9 @@ func handleGlobalImageRegistry(line string, registryURL string) (string, bool) {
 	return line, false
 }
 
-// handleImageRepo handles 'repo' or 'repository' keys within an image section,
-// prepending the new registry URL to their values.
+// handleImageRepo handles the `repo` and `repository` fields in a values.yaml file.
+// It takes a line of the values.yaml file and the registry URL as input.
+// It returns the modified line and a boolean indicating whether the line was modified.
 func handleImageRepo(line string, registryURL string) (string, bool) {
 	matches := repoRegex.FindStringSubmatch(line)
 	if len(matches) == 3 {
@@ -305,8 +320,9 @@ func handleImageRepo(line string, registryURL string) (string, bool) {
 	return line, false
 }
 
-// hasGlobalRegistry checks if a values.yaml file contains a global image registry definition
-// (either 'global.imageRegistry' or 'global.image.registry').
+// hasGlobalRegistry checks if a values.yaml file has a global registry defined.
+// It takes the path to the values.yaml file as input.
+// It returns a boolean indicating whether a global registry is defined and an error if the file cannot be read.
 func hasGlobalRegistry(srcPath string) (bool, error) {
 	srcFile, err := os.Open(srcPath)
 	if err != nil {
@@ -359,9 +375,11 @@ func hasGlobalRegistry(srcPath string) (bool, error) {
 	return false, nil
 }
 
-// processValuesYaml reads a values.yaml file and updates container image references.
-// It prioritizes global registry settings. If not present, it processes all 'image:' sections.
-func processValuesYaml(srcPath, destPath, registryURL string) error {
+// processValuesYAML processes the values.yaml file of a Helm chart.
+// It updates the image registry and repository fields to point to a new registry.
+// It takes the source path of the values.yaml file, the destination path, and the registry URL as input.
+// It returns an error if the processing fails.
+func processValuesYAML(srcPath, destPath, registryURL string) error {
 	// Check if values.yaml contains global.imageRegistry or global.image.registry
 	hasGlobal, err := hasGlobalRegistry(srcPath)
 	if err != nil {
@@ -461,7 +479,9 @@ func processValuesYaml(srcPath, destPath, registryURL string) error {
 	return nil
 }
 
-// copyFile copies a single file from a source to a destination.
+// copyFile copies a file from a source path to a destination path.
+// It takes the source and destination paths as input.
+// It returns an error if the copy fails.
 func copyFile(src, dst string) error {
 	srcFile, err := os.Open(src)
 	if err != nil {

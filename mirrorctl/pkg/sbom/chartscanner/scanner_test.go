@@ -18,7 +18,7 @@ func TestScanChart(t *testing.T) {
 	}{
 		{
 			name:      "redis chart",
-			chartPath: "./data_test/redis",
+			chartPath: "../../../resources/data_test/input_charts/redis",
 			expectedImages: []types.Image{
 				{Name: "redis", Source: "docker.io/bitnami/redis:7.0.5-debian-11-r15"},
 				{Name: "redis-sentinel", Source: "docker.io/bitnami/redis-sentinel:7.0.5-debian-11-r14"},
@@ -28,7 +28,7 @@ func TestScanChart(t *testing.T) {
 		},
 		{
 			name:      "loki chart",
-			chartPath: "./data_test/loki",
+			chartPath: "../../../resources/data_test/input_charts/loki",
 			expectedImages: []types.Image{
 				{Name: "agent-operator", Source: "docker.io/grafana/agent-operator:v0.25.1"},
 				{Name: "kubectl", Source: "docker.io/bitnami/kubectl:latest"},

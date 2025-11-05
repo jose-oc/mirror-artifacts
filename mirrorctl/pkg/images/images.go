@@ -18,21 +18,13 @@ import (
 	"oras.land/oras-go/v2/registry/remote/auth"
 )
 
-// MirrorImages mirrors container images to GAR
-// It reads the images from the provided YAML file, authenticates with Google Artifact Registry,
-// and then mirrors each image.
-//
-// Parameters:
-//
-//	ctx: The application context containing configuration and other utilities.
-//	imagesFile: The path to the YAML file containing the list of images to mirror.
-//
-// Returns:
-//
-//	A map[string]string where keys are source image names and values are their corresponding target repository paths in GAR.
-//	A map[string]string where keys are source image names and values are their digests.
-//	An error if the mirroring process fails for any reason, otherwise nil.
-func MirrorImages(ctx *appcontext.AppContext, imagesFile string) (map[string]string, map[string]string, error) {
+// MirrorImagesFromFile mirrors a list of container images from a file to a Google Artifact Registry.
+// It takes an application context and the path to the file containing the list of images as input.
+// It returns three values:
+// - A map of strings to strings, where the keys are the source image names and the values are the destination image names.
+// - A map of strings to strings, where the keys are the source image names and the values are the image digests.
+// - An error if the mirroring fails.
+func MirrorImagesFromFile(ctx *appcontext.AppContext, imagesFile string) (map[string]string, map[string]string, error) {
 	if imagesFile == "" {
 		return nil, nil, fmt.Errorf("images file path is required")
 	}
@@ -51,22 +43,16 @@ func MirrorImages(ctx *appcontext.AppContext, imagesFile string) (map[string]str
 
 	// Log the image list in a pretty format
 	log.Info().Interface("images", imagesList).Str("file", imagesFile).Msg("Loaded images from file")
-	return MirrorImageList(ctx, imagesList)
+	return MirrorImages(ctx, imagesList)
 }
 
-// MirrorImageList mirrors container images to GAR
-//
-// Parameters:
-//
-//	ctx: The application context containing configuration and other utilities.
-//	imagesList: list of images to mirror.
-//
-// Returns:
-//
-//	A map[string]string where keys are source image names and values are their corresponding target repository paths in GAR.
-//	A map[string]string where keys are source image names and values are their digests.
-//	An error if the mirroring process fails for any reason, otherwise nil.
-func MirrorImageList(ctx *appcontext.AppContext, imagesList types.ImagesList) (map[string]string, map[string]string, error) {
+// MirrorImages mirrors a list of container images to a Google Artifact Registry.
+// It takes an application context and a list of images as input.
+// It returns three values:
+// - A map of strings to strings, where the keys are the source image names and the values are the destination image names.
+// - A map of strings to strings, where the keys are the source image names and the values are the image digests.
+// - An error if the mirroring fails.
+func MirrorImages(ctx *appcontext.AppContext, imagesList types.ImagesList) (map[string]string, map[string]string, error) {
 	// Track failed images for GitHub Actions
 	failedImages := make([]map[string]string, 0)
 	mirroredImages := make(map[string]string)
@@ -176,6 +162,9 @@ func MirrorImageList(ctx *appcontext.AppContext, imagesList types.ImagesList) (m
 	return mirroredImages, imageDigests, nil
 }
 
+// getImageTag extracts the tag from an image source string.
+// It takes an image object as input.
+// It returns the image tag and an error if the tag cannot be extracted.
 func getImageTag(img types.Image) (string, error) {
 	if img.Source == "" {
 		return "", fmt.Errorf("image source cannot be empty")
