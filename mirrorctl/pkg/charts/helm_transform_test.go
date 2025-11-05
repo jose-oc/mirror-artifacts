@@ -380,6 +380,22 @@ func TestProcessValuesYaml(t *testing.T) {
   tag: "1.8.10-alpine"
   pullPolicy: IfNotPresent`,
 		},
+		{
+			name: "chart with top-level image.registry and image.repository (grafana-agent-operator style)",
+			input: `image:
+  # -- Image registry
+  registry: docker.io
+  # -- Image repo
+  repository: grafana/agent-operator
+  tag: v0.44.2`,
+			registryURL: "europe-southwest1-docker.pkg.dev/poc-development-123456/test-helm-charts",
+			expected: `image:
+  # -- Image registry
+  registry: "europe-southwest1-docker.pkg.dev/poc-development-123456/test-helm-charts"
+  # -- Image repo
+  repository: grafana/agent-operator
+  tag: v0.44.2`,
+		},
 	}
 
 	for _, tt := range tests {
