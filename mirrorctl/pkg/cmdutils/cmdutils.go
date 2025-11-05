@@ -11,6 +11,7 @@ import (
 	"github.com/jose-oc/mirror-artifacts/mirrorctl/pkg/datastructures"
 	"github.com/jose-oc/mirror-artifacts/mirrorctl/pkg/images"
 	"github.com/jose-oc/mirror-artifacts/mirrorctl/pkg/sbom/chartscanner"
+	"github.com/jose-oc/mirror-artifacts/mirrorctl/pkg/types"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -31,17 +32,50 @@ func MirrorImages(ctx *appcontext.AppContext, _ *cobra.Command) {
 }
 
 // MirrorCharts handles the `mirror charts` subcommand
-func MirrorCharts(ctx *appcontext.AppContext, cmd *cobra.Command) {
+func MirrorCharts(ctx *appcontext.AppContext, cmd *cobra.Command) error {
 	chartsFile := viper.GetString("charts")
-	if chartsFile == "" {
-		log.Fatal().Msg("Charts file path is required")
+	err := validateChartsFlag(chartsFile)
+	if err != nil {
+		return err
 	}
 	if ctx.DryRun {
-		log.Info().Msg("Dry-run: Would mirror charts to GAR")
+		log.Info().Msg("Running in dry-run mode: nothing will be mirrored to GAR")
 	}
-	if err := charts.MirrorHelmCharts(ctx, chartsFile); err != nil {
-		log.Fatal().Err(err).Msg("Failed to mirror charts")
+	successfulCharts, failedCharts, err := charts.MirrorHelmCharts(ctx, chartsFile)
+	if err != nil {
+		return fmt.Errorf("failed to mirror charts: %w", err)
 	}
+
+	if !viper.GetBool("skip_image_mirroring") {
+		log.Debug().Msg("mirror images to GAR")
+		imageListByChart, err := chartscanner.ExtractImagesFromCharts(ctx, chartsFile)
+		if err != nil {
+			return fmt.Errorf("failed to extract images from charts: %w", err)
+		}
+		log.Info().Interface("images", imageListByChart).Msg("Images extracted from charts")
+
+		sortedImages := datastructures.DeduplicateAndSortImages(imageListByChart)
+		var imagesList types.ImagesList
+		imagesList.Images = sortedImages
+		imagesPushed, _, err := images.MirrorImageList(ctx, imagesList)
+		if err != nil {
+			return fmt.Errorf("Failed to mirror images: %w", err)
+		}
+		log.Debug().Interface("images pushed", imagesPushed).Msg("Mirroring images")
+
+		var values []string
+		for _, value := range imagesPushed {
+			values = append(values, value)
+		}
+		fmt.Println("Images pushed:\n", strings.Join(values, "\n "))
+	}
+
+	fmt.Println("Charts pushed:\n", strings.Join(successfulCharts, "\n"))
+	if len(failedCharts) > 0 {
+		fmt.Println("Charts failed to push:\n", strings.Join(failedCharts, "\n"))
+	}
+
+	return nil
 }
 
 var ErrMissingRequiredParam = errors.New("missing required parameter")
@@ -80,14 +114,22 @@ func ExtractImagesFromHelmCharts(ctx *appcontext.AppContext, cmd *cobra.Command)
 // - outputFile: (Optional) Path to the output file, it has to have the .json, .yml or .yaml extension
 // Returns an error if the flags are invalid
 func validateFlagsExtractImagesFromHelmCharts(chartsFile string, outputFile string) error {
-	if chartsFile == "" {
-		return fmt.Errorf("%w: %s", ErrMissingRequiredParam, "charts file path")
+	err := validateChartsFlag(chartsFile)
+	if err != nil {
+		return err
 	}
 	if outputFile != "" {
 		ext := strings.ToLower(filepath.Ext(outputFile))
 		if ext != ".json" && ext != ".yaml" && ext != ".yml" {
 			return fmt.Errorf("unsupported file extension: %s, must be .json, .yaml or .yml", ext)
 		}
+	}
+	return nil
+}
+
+func validateChartsFlag(chartsFile string) error {
+	if chartsFile == "" {
+		return fmt.Errorf("%w: %s", ErrMissingRequiredParam, "charts file path")
 	}
 	return nil
 }

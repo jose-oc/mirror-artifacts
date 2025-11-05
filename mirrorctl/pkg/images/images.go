@@ -51,7 +51,22 @@ func MirrorImages(ctx *appcontext.AppContext, imagesFile string) (map[string]str
 
 	// Log the image list in a pretty format
 	log.Info().Interface("images", imagesList).Str("file", imagesFile).Msg("Loaded images from file")
+	return MirrorImageList(ctx, imagesList)
+}
 
+// MirrorImageList mirrors container images to GAR
+//
+// Parameters:
+//
+//	ctx: The application context containing configuration and other utilities.
+//	imagesList: list of images to mirror.
+//
+// Returns:
+//
+//	A map[string]string where keys are source image names and values are their corresponding target repository paths in GAR.
+//	A map[string]string where keys are source image names and values are their digests.
+//	An error if the mirroring process fails for any reason, otherwise nil.
+func MirrorImageList(ctx *appcontext.AppContext, imagesList types.ImagesList) (map[string]string, map[string]string, error) {
 	// Track failed images for GitHub Actions
 	failedImages := make([]map[string]string, 0)
 	mirroredImages := make(map[string]string)

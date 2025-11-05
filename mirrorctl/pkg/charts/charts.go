@@ -1,29 +1,48 @@
 package charts
 
 import (
+	"fmt"
 	"github.com/jose-oc/mirror-artifacts/mirrorctl/pkg/appcontext"
 	"github.com/jose-oc/mirror-artifacts/mirrorctl/pkg/helm"
 	"github.com/jose-oc/mirror-artifacts/mirrorctl/pkg/types"
 	"github.com/rs/zerolog/log"
 )
 
-// MirrorHelmCharts mirrors Helm charts to GAR
-func MirrorHelmCharts(ctx *appcontext.AppContext, chartsFile string) error {
+// MirrorHelmCharts mirrors Helm charts to GAR, returning lists of successful and failed charts.
+//
+// Returns:
+// 1. []string: List of successfully mirrored charts (Name:Version).
+// 2. []string: List of charts that failed to mirror (Name:Version).
+// 3. error: Any error encountered during the initial loading of the charts list.
+func MirrorHelmCharts(ctx *appcontext.AppContext, chartsFile string) ([]string, []string, error) {
 	chartsList, err := LoadChartsList(chartsFile)
 	if err != nil {
-		return err
+		// Only return an error here if the failure prevents processing any chart
+		return nil, nil, err
 	}
+
+	// Initialize the lists to be returned
+	var successfulCharts []string
+	var failedCharts []string
 
 	for _, ch := range chartsList.Charts {
+		// Format the chart identifier as "name:version" for the lists
+		chartDetail := fmt.Sprintf("%s:%s", ch.Name, ch.Version)
+
 		if err := mirrorHelmChart(ctx, ch); err != nil {
 			log.Error().Err(err).Str("chart", ch.Name).Msg("Failed to mirror chart")
+			failedCharts = append(failedCharts, chartDetail) // Add to failed list
 			continue
 		}
+
+		successfulCharts = append(successfulCharts, chartDetail) // Add to successful list
 	}
 
-	return nil
+	// Return the two lists and a nil error (since processing the loop was successful)
+	return successfulCharts, failedCharts, nil
 }
 
+// mirrorHelmChart handles the single chart logic
 func mirrorHelmChart(ctx *appcontext.AppContext, chart types.Chart) error {
 	log.Debug().Str("chart", chart.Name).Str("version", chart.Version).Msg("Mirroring chart")
 

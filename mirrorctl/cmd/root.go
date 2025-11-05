@@ -63,11 +63,11 @@ func init() {
 	rootCmd.PersistentFlags().BoolVar(&keepTempDir, "keep-temp-dir", false, "Keep temporary directories for inspection")
 
 	// Bind the flag to viper so it can be accessed via viper
-	_ = viper.BindPFlag("prod-mode", rootCmd.PersistentFlags().Lookup("prod-mode"))
-	_ = viper.BindPFlag("log-color", rootCmd.PersistentFlags().Lookup("log-color"))
-	_ = viper.BindPFlag("log-level", rootCmd.PersistentFlags().Lookup("log-level"))
-	_ = viper.BindPFlag("log-file", rootCmd.PersistentFlags().Lookup("log-file"))
-	_ = viper.BindPFlag("dry-run", rootCmd.PersistentFlags().Lookup("dry-run"))
+	_ = viper.BindPFlag("prod_mode", rootCmd.PersistentFlags().Lookup("prod-mode"))
+	_ = viper.BindPFlag("log_color", rootCmd.PersistentFlags().Lookup("log-color"))
+	_ = viper.BindPFlag("log_level", rootCmd.PersistentFlags().Lookup("log-level"))
+	_ = viper.BindPFlag("log_file", rootCmd.PersistentFlags().Lookup("log-file"))
+	_ = viper.BindPFlag("dry_run", rootCmd.PersistentFlags().Lookup("dry-run"))
 	_ = viper.BindPFlag("options.keep_temp_dir", rootCmd.PersistentFlags().Lookup("keep-temp-dir"))
 }
 

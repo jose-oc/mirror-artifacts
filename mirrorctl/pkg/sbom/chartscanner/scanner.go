@@ -26,7 +26,7 @@ func ScanChart(chartPath string) ([]types.Image, error) {
 		}
 
 		if filepath.Ext(path) == ".yaml" || filepath.Ext(path) == ".yml" {
-			log.Debug().Msgf("Parsing YAML file: %s", path)
+			log.Trace().Msgf("Parsing YAML file: %s", path)
 			images, err := parseYAMLFile(path)
 			if err != nil {
 				log.Warn().Err(err).Msgf("Failed to parse YAML file: %s", path)
