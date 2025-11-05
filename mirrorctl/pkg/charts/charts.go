@@ -11,10 +11,11 @@ import (
 
 // MirrorHelmCharts mirrors a list of Helm charts to a Google Artifact Registry.
 // It takes an application context and the path to a file containing the list of charts to mirror.
-// It returns three values:
-// - A slice of strings containing the names of the charts that were successfully mirrored.
-// - A slice of strings containing the names of the charts that failed to be mirrored.
-// - An error if the file containing the list of charts could not be read.
+
+// Returns:
+// 1. []string: List of successfully mirrored charts (Name:Version).
+// 2. []string: List of charts that failed to mirror (Name:Version).
+// 3. error: Any error encountered during the initial loading of the charts list.
 func MirrorHelmCharts(ctx *appcontext.AppContext, chartsFile string) ([]string, []string, error) {
 	chartsList, err := LoadChartsList(chartsFile)
 	if err != nil {
