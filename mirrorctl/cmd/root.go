@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"os"
 	"strings"
 
@@ -95,7 +96,6 @@ func initConfig() {
 		viper.SetConfigName(".mirrorctl")
 	}
 
-	// TODO try this out
 	viper.SetEnvPrefix("mirrorctl")
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	viper.AutomaticEnv() // read in environment variables that match
@@ -112,12 +112,17 @@ func initConfig() {
 			log.Fatal().Err(err).Msg("Failed to read config file")
 		}
 	} else {
-		log.Debug().Str("config_file", viper.ConfigFileUsed()).Msg("Using config file")
+		// log.Debug().Str("config_file", viper.ConfigFileUsed()).Msg("Using config file")
+		fmt.Println("Using config file:", viper.ConfigFileUsed())
 	}
-	initLoggers()
+	err := initLoggers()
+	if err != nil {
+		log.Fatal().Err(err).Msg("Failed to initialize loggers")
+		os.Exit(1)
+	}
 }
 
 // initLoggers initializes the logging system.
-func initLoggers() {
-	logging.SetupLogger()
+func initLoggers() error {
+	return logging.SetupLogger()
 }

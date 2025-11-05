@@ -188,17 +188,9 @@ func stripArchiveExtension(name string) string {
 	}
 }
 
-// buildRepositoryReference normalizes a base repository string (possibly containing scheme
-// or a "/v2" prefix) and guarantees a reference that includes an image name at the end.
-// baseRepo may be any of:
-//   - "europe-southwest1-docker.pkg.dev/poc-dev-123/my-repo"
-//   - "https://europe-southwest1-docker.pkg.dev/v2/poc-dev-123/my-repo"
-//   - "europe-southwest1-docker.pkg.dev/poc-dev-123/my-repo/my-image" (already contains image)
-//
-// If baseRepo already has an "image" segment (i.e., at least 4 path segments after host),
-// it will be returned (after stripping scheme and /v2). Otherwise, imageName will be appended.
-//
-// This ensures ORAS will address: HOST/PROJECT/REPOSITORY/IMAGE
+// buildRepositoryReference builds a repository reference for a given base repository and image name.
+// It takes a base repository and an image name as input.
+// It returns a string containing the repository reference.
 func buildRepositoryReference(baseRepo string, imageName string) string {
 	ref := strings.TrimSpace(baseRepo)
 	ref = strings.TrimPrefix(ref, "https://")

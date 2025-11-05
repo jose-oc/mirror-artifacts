@@ -1,12 +1,14 @@
 package logging
 
 import (
+	"fmt"
 	"io"
 	"os"
 	"runtime"
 	"strconv"
 	"time"
 
+	"github.com/jose-oc/mirror-artifacts/mirrorctl/pkg/version"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
@@ -28,36 +30,42 @@ func (h CallerHook) Run(e *zerolog.Event, level zerolog.Level, _ string) {
 	}
 }
 
-func SetupLogger() {
+func SetupLogger() error {
 	zerolog.TimeFieldFormat = time.RFC3339Nano
 	logLevel, err := zerolog.ParseLevel(viper.GetString("log_level"))
 	if err != nil {
 		logLevel = zerolog.InfoLevel
 	}
 
-	var output io.Writer = os.Stdout
-	if logFile := viper.GetString("log-file"); logFile != "" {
-		file, err := os.OpenFile(logFile, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
-		if err != nil {
-			log.Fatal().Err(err).Msgf("Failed to open log file: %s", logFile)
-		}
-		output = file
+	// File logger
+	logFile := viper.GetString("log_file")
+	if logFile == "" {
+		logFile = version.AppName + ".log"
+	}
+	file, err := os.OpenFile(logFile, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	if err != nil {
+		log.Error().Err(err).Msgf("Failed to open log file: %s", logFile)
+		return fmt.Errorf("failed to open log file: %s. %w", logFile, err)
 	}
 
-	var logger zerolog.Logger
-	if viper.GetBool("prod-mode") {
-		logger = zerolog.New(output).With().Timestamp().Logger()
-	} else {
+	var writers []io.Writer
+	writers = append(writers, file)
+	if viper.GetBool("verbose") {
 		consoleWriter := zerolog.ConsoleWriter{
-			Out:        output,
+			Out:        os.Stdout,
 			TimeFormat: "15:04.0000",
 			NoColor:    !viper.GetBool("log_color"),
 		}
-		logger = zerolog.New(consoleWriter).With().Timestamp().Logger()
+		writers = append(writers, consoleWriter)
 	}
+
+	multi := zerolog.MultiLevelWriter(writers...)
+	var logger zerolog.Logger
+	logger = zerolog.New(multi).With().Timestamp().Logger()
 
 	// Add the new custom CallerHook
 	logger = logger.Hook(CallerHook{})
 
 	log.Logger = logger.Level(logLevel)
+	return nil
 }
