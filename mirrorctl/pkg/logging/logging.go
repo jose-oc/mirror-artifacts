@@ -56,7 +56,7 @@ func SetupLogger() error {
 		consoleWriter := zerolog.ConsoleWriter{
 			Out:        os.Stdout,
 			TimeFormat: "15:04.0000",
-			NoColor:    !viper.GetBool("log_color"),
+			NoColor:    viper.GetBool("no_color"),
 		}
 		writers = append(writers, consoleWriter)
 	}

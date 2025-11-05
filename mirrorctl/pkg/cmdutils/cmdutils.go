@@ -66,17 +66,14 @@ func MirrorCharts(ctx *appcontext.AppContext, cmd *cobra.Command) error {
 		}
 		log.Debug().Interface("images pushed", imagesPushed).Msg("Mirroring images")
 
-		var values []string
-		for _, value := range imagesPushed {
-			values = append(values, value)
+		var imagesPushedGar []string
+		for _, img := range imagesPushed {
+			imagesPushedGar = append(imagesPushedGar, img)
 		}
-		fmt.Println("Images pushed:\n", strings.Join(values, "\n "))
+		PrintImagesPushed(imagesPushedGar)
 	}
 
-	fmt.Println("Charts pushed:\n", strings.Join(successfulCharts, "\n "))
-	if len(failedCharts) > 0 {
-		fmt.Println("Charts failed to push:\n", strings.Join(failedCharts, "\n"))
-	}
+	PrintChartsPushed(successfulCharts, failedCharts)
 	PrintDryRunMessage(ctx)
 
 	return nil

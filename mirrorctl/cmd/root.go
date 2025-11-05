@@ -58,7 +58,7 @@ func init() {
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.mirrorctl.yaml)")
 	rootCmd.PersistentFlags().Bool("prod-mode", false, "Enables production-style JSON logging.")
-	rootCmd.PersistentFlags().Bool("log-color", true, "Enables colored output in development mode.")
+	rootCmd.PersistentFlags().Bool("no-color", false, "Disables colored output.")
 	rootCmd.PersistentFlags().String("log-level", "info", "Sets the minimum log level (e.g., debug, info, warn, error).")
 	rootCmd.PersistentFlags().String("log-file", "", "If set, writes logs to the specified file path instead of the console.")
 	rootCmd.PersistentFlags().BoolVar(&dryRun, "dry-run", false, "Simulate actions without executing")
@@ -70,7 +70,7 @@ func init() {
 
 	// Bind the flag to viper so it can be accessed via viper
 	_ = viper.BindPFlag("prod_mode", rootCmd.PersistentFlags().Lookup("prod-mode"))
-	_ = viper.BindPFlag("log_color", rootCmd.PersistentFlags().Lookup("log-color"))
+	_ = viper.BindPFlag("no_color", rootCmd.PersistentFlags().Lookup("no-color"))
 	_ = viper.BindPFlag("log_level", rootCmd.PersistentFlags().Lookup("log-level"))
 	_ = viper.BindPFlag("log_file", rootCmd.PersistentFlags().Lookup("log-file"))
 	_ = viper.BindPFlag("dry_run", rootCmd.PersistentFlags().Lookup("dry-run"))
