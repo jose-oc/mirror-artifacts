@@ -123,7 +123,7 @@ func TestMirrorGrafanaAgentOperatorChart(t *testing.T) {
 
 	// Clean up output directory before test
 	os.RemoveAll(outputDir)
-	// defer os.RemoveAll(outputDir) // Clean up after test
+	defer os.RemoveAll(outputDir) // Clean up after test
 
 	// Create test configuration
 	chart := types.Chart{
@@ -395,6 +395,24 @@ func TestProcessValuesYaml(t *testing.T) {
   # -- Image repo
   repository: grafana/agent-operator
   tag: v0.44.2`,
+		},
+		{
+			name: "chart with nested test.image.registry (grafana-agent-operator nested style)",
+			input: `test:
+  image:
+    # -- Test image registry
+    registry: docker.io
+    # -- Test image repo
+    repository: library/busybox
+    tag: latest`,
+			registryURL: "europe-southwest1-docker.pkg.dev/poc-development-123456/test-helm-charts",
+			expected: `test:
+  image:
+    # -- Test image registry
+    registry: "europe-southwest1-docker.pkg.dev/poc-development-123456/test-helm-charts"
+    # -- Test image repo
+    repository: library/busybox
+    tag: latest`,
 		},
 	}
 

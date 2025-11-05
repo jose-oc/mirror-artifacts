@@ -30,8 +30,8 @@ var (
 	globalImageSectionRegex = regexp.MustCompile(`^\s+image:\s*`) // global.image
 	// registryRegex matches a 'registry:' line within an image section.
 	registryRegex = regexp.MustCompile(`^\s+registry:\s*`) // any *.registry
-	// imageSectionRegex matches a top-level 'image:' section.
-	imageSectionRegex = regexp.MustCompile(`^image:\s*`) // top-level image:
+	// imageSectionRegex matches an 'image:' section at any indentation level.
+	imageSectionRegex = regexp.MustCompile(`^\s*image:\s*`) // any image: section
 	// anyImageSectionRegex matches any 'image:' section, capturing indentation.
 	anyImageSectionRegex = regexp.MustCompile(`^(\s*)image:\s*$`)
 	// repoRegex matches 'repo:' or 'repository:' lines.
@@ -403,13 +403,28 @@ func processValuesYAML(srcPath, destPath, registryURL string) error {
 	// Track if we found the imageRegistry field
 	foundRegistry := false
 	inGlobalSection := false
-	inImageSection := false
-	inTopImageSection := false
-	imageRegistryHandledInSection := false
+	inGlobalImageSection := false // For global.image
+
+	// Track any active image section (not just top-level)
+	type imageSection struct {
+		indentation              int
+		registryHandledInSection bool
+	}
+	var currentImageSection *imageSection
 
 	for scanner.Scan() {
 		line := scanner.Text()
 		originalLine := line
+
+		// Determine current indentation level
+		currentIndent := 0
+		for i, char := range line {
+			if char != ' ' {
+				currentIndent = i
+				break
+			}
+		}
+		trimmed := strings.TrimSpace(line)
 
 		// Check if we're entering the global section
 		if globalSectionRegex.MatchString(line) {
@@ -418,12 +433,13 @@ func processValuesYAML(srcPath, destPath, registryURL string) error {
 			continue
 		}
 
-		// Check if we're entering the top-level image section
-		if !hasGlobal && imageSectionRegex.MatchString(line) {
-			inTopImageSection = true
-			imageRegistryHandledInSection = false // Reset flag when entering new top-level image section
-			writer.WriteString(line + "\n")
-			continue
+		// Check if we're leaving the global section
+		if inGlobalSection && len(line) > 0 && line[0] != ' ' && line[0] != '#' && trimmed != "" && !globalSectionRegex.MatchString(line) {
+			// Check if it's not a continuation of global section (like global.image)
+			if currentIndent == 0 {
+				inGlobalSection = false
+				inGlobalImageSection = false
+			}
 		}
 
 		// Check if we're in the global section
@@ -436,26 +452,37 @@ func processValuesYAML(srcPath, destPath, registryURL string) error {
 			}
 
 			// Try to handle global.image.registry
-			if modifiedLine, replaced := handleGlobalImageDotRegistry(line, registryURL, &inImageSection); replaced {
+			if modifiedLine, replaced := handleGlobalImageDotRegistry(line, registryURL, &inGlobalImageSection); replaced {
 				foundRegistry = true
 				writer.WriteString(modifiedLine + "\n")
 				continue
 			}
-
-			// Detect if we've left the global section
-			trimmed := strings.TrimSpace(line)
-			if len(line) > 0 && line[0] != ' ' && line[0] != '#' && trimmed != "" {
-				inGlobalSection = false
-				inImageSection = false // Reset inImageSection when leaving global section
-			}
 		}
 
-		// Check if we're in the top-level image section and no global registry was found
-		if inTopImageSection && !hasGlobal {
-			// First try to handle registry field within the image section
-			if !imageRegistryHandledInSection {
+		// Check if we're entering an image section (anywhere, not just top level)
+		// But skip if we're in the global section
+		if !inGlobalSection && !hasGlobal && imageSectionRegex.MatchString(line) {
+			currentImageSection = &imageSection{
+				indentation:              currentIndent,
+				registryHandledInSection: false,
+			}
+			writer.WriteString(line + "\n")
+			continue
+		}
+
+		// Check if we're leaving the current image section
+		// If the line is not indented more than the image section's indentation,
+		// and it's not a comment or empty line, we've left the section
+		if currentImageSection != nil && trimmed != "" && line != "" && line[0] != '#' && currentIndent <= currentImageSection.indentation {
+			currentImageSection = nil // Leave the image section
+		}
+
+		// Process the current line if we're inside an image section
+		if currentImageSection != nil && !hasGlobal {
+			// First try to handle registry field within the current image section
+			if !currentImageSection.registryHandledInSection {
 				if modifiedLine, replaced := handleImageRegistry(line, registryURL); replaced {
-					imageRegistryHandledInSection = true
+					currentImageSection.registryHandledInSection = true
 					foundRegistry = true
 					writer.WriteString(modifiedLine + "\n")
 					continue
@@ -463,19 +490,12 @@ func processValuesYAML(srcPath, destPath, registryURL string) error {
 			}
 
 			// Only handle repo/repository if registry was not handled in this section
-			if !imageRegistryHandledInSection {
+			if !currentImageSection.registryHandledInSection {
 				if modifiedLine, replaced := handleImageRepo(line, registryURL); replaced {
 					foundRegistry = true
 					writer.WriteString(modifiedLine + "\n")
 					continue
 				}
-			}
-
-			// Detect if we've left the top-level image section
-			trimmed := strings.TrimSpace(line)
-			if len(line) > 0 && line[0] != ' ' && line[0] != '#' && trimmed != "" {
-				inTopImageSection = false
-				imageRegistryHandledInSection = false // Reset flag when leaving image section
 			}
 		}
 
