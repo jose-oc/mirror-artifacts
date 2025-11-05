@@ -4,11 +4,13 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/jose-oc/mirror-artifacts/mirrorctl/pkg/types"
 	"github.com/rs/zerolog/log"
 	"helm.sh/helm/v3/pkg/action"
 	"helm.sh/helm/v3/pkg/cli"
+	"helm.sh/helm/v3/pkg/registry"
 )
 
 // PullChart pulls a Helm chart from a repository and saves it to a temporary directory.
@@ -43,14 +45,27 @@ func downloadChart(chart types.Chart, destDir string) (string, error) {
 
 	client := action.NewPullWithOpts(action.WithConfig(actionConfig))
 	client.Settings = settings
-	client.RepoURL = chart.Source
 	client.Version = chart.Version
 	client.DestDir = destDir
 	client.Untar = true
 	client.UntarDir = destDir
 
-	_, err := client.Run(chart.Name)
-	if err != nil {
+	var chartRef string
+	if strings.HasPrefix(chart.Source, "oci://") {
+		// Handle OCI chart
+		regClient, err := registry.NewClient()
+		if err != nil {
+			return "", fmt.Errorf("failed to create registry client: %w", err)
+		}
+		actionConfig.RegistryClient = regClient // Set the registry client on the actionConfig
+		chartRef = fmt.Sprintf("%s/%s", chart.Source, chart.Name)
+	} else {
+		// Handle traditional chart
+		client.RepoURL = chart.Source
+		chartRef = chart.Name
+	}
+
+	if _, err := client.Run(chartRef); err != nil {
 		return "", fmt.Errorf("failed to download chart: %w", err)
 	}
 

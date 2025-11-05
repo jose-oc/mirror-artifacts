@@ -21,6 +21,9 @@ charts:
   - name: loki
     source: https://grafana.github.io/helm-charts
     version: 5.5.2
+  - name: mariadb
+    source: oci://registry-1.docker.io/bitnamicharts
+    version: 12.2.4
 `
 	tmpfile, err := os.CreateTemp("", "charts-*.yaml")
 	assert.NoError(t, err)
@@ -56,6 +59,11 @@ charts:
 			{Name: "nginx-unprivileged", Source: "docker.io/nginxinc/nginx-unprivileged:1.19-alpine"},
 			{Name: "mc", Source: "quay.io/minio/mc:RELEASE.2022-08-11T00-30-48Z"},
 			{Name: "minio", Source: "quay.io/minio/minio:RELEASE.2022-08-13T21-54-44Z"},
+		},
+		"mariadb": {
+			{Name: "bitnami-shell", Source: "docker.io/bitnami/bitnami-shell:11-debian-11-r118"},
+			{Name: "mariadb", Source: "docker.io/bitnami/mariadb:10.11.3-debian-11-r5"},
+			{Name: "mysqld-exporter", Source: "docker.io/bitnami/mysqld-exporter:0.14.0-debian-11-r119"},
 		},
 	}
 
