@@ -115,35 +115,33 @@ func TestMirrorTelegrafChart(t *testing.T) {
 	}
 }
 
-//func TestMirrorGrafanaAgentOperatorChart(t *testing.T) {
-//	// TODO this test is currently failing. It should work once the new chart values.yaml is covered.
-//	// Gemini, all the tests in this file should work fine once you've modified the helm_transform.go code to cover this new scenario
-//	// Setup test directories
-//	inputDir := "../../resources/data_test/input_charts/grafana-agent-operator"
-//	expectedDir := "../../resources/data_test/expected_charts/grafana-agent-operator"
-//	outputDir := "../../resources/data_test/output_charts/grafana-agent-operator"
-//
-//	// Clean up output directory before test
-//	os.RemoveAll(outputDir)
-//	defer os.RemoveAll(outputDir) // Clean up after test
-//
-//	// Create test configuration
-//	chart := types.Chart{
-//		Name:    "grafana-agent-operator",
-//		Source:  "https://grafana.github.io/helm-charts",
-//		Version: "0.5.1",
-//	}
-//	transformHelmChartDir, err := TransformHelmChart(&ctx, chart, inputDir, outputDir)
-//	if err != nil {
-//		t.Fatalf("MirrorChart failed: %v", err)
-//	}
-//
-//	// Verify the output matches the expected output
-//	err = compareDirectories(expectedDir, transformHelmChartDir)
-//	if err != nil {
-//		t.Fatalf("Output does not match expected: %v", err)
-//	}
-//}
+func TestMirrorGrafanaAgentOperatorChart(t *testing.T) {
+	// Setup test directories
+	inputDir := "../../resources/data_test/input_charts/grafana-agent-operator"
+	expectedDir := "../../resources/data_test/expected_charts/grafana-agent-operator"
+	outputDir := "../../resources/data_test/output_charts/grafana-agent-operator"
+
+	// Clean up output directory before test
+	os.RemoveAll(outputDir)
+	// defer os.RemoveAll(outputDir) // Clean up after test
+
+	// Create test configuration
+	chart := types.Chart{
+		Name:    "grafana-agent-operator",
+		Source:  "https://grafana.github.io/helm-charts",
+		Version: "0.5.1",
+	}
+	transformHelmChartDir, err := TransformHelmChart(&ctx, chart, inputDir, outputDir)
+	if err != nil {
+		t.Fatalf("MirrorChart failed: %v", err)
+	}
+
+	// Verify the output matches the expected output
+	err = compareDirectories(expectedDir, transformHelmChartDir)
+	if err != nil {
+		t.Fatalf("Output does not match expected: %v", err)
+	}
+}
 
 func compareDirectories(expectedDir, actualDir string) error {
 	// Walk through the expected directory
