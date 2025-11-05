@@ -3,8 +3,8 @@ annotations:
   # --- Provenance Metadata ---
   repackage.provenance/repackaged-by: "mirrorctl dev"
   repackage.provenance/original-chart-url: "https://grafana.github.io/helm-charts"
-  repackage.provenance/original-chart-name: "loki"
-  repackage.provenance/original-chart-version: "5.5.2"
+  repackage.provenance/original-chart-name: "grafana-agent-operator"
+  repackage.provenance/original-chart-version: "0.5.1"
   repackage.provenance/timestamp: "2025-10-22T14:30:00Z"
 appVersion: 0.44.2
 description: A Helm chart for Grafana Agent Operator

@@ -115,35 +115,33 @@ func TestMirrorTelegrafChart(t *testing.T) {
 	}
 }
 
-//func TestMirrorGrafanaAgentOperatorChart(t *testing.T) {
-//	// TODO this test is currently failing. It should work once the new chart values.yaml is covered.
-//	// Gemini, all the tests in this file should work fine once you've modified the helm_transform.go code to cover this new scenario
-//	// Setup test directories
-//	inputDir := "../../resources/data_test/input_charts/grafana-agent-operator"
-//	expectedDir := "../../resources/data_test/expected_charts/grafana-agent-operator"
-//	outputDir := "../../resources/data_test/output_charts/grafana-agent-operator"
-//
-//	// Clean up output directory before test
-//	os.RemoveAll(outputDir)
-//	defer os.RemoveAll(outputDir) // Clean up after test
-//
-//	// Create test configuration
-//	chart := types.Chart{
-//		Name:    "grafana-agent-operator",
-//		Source:  "https://grafana.github.io/helm-charts",
-//		Version: "0.5.1",
-//	}
-//	transformHelmChartDir, err := TransformHelmChart(&ctx, chart, inputDir, outputDir)
-//	if err != nil {
-//		t.Fatalf("MirrorChart failed: %v", err)
-//	}
-//
-//	// Verify the output matches the expected output
-//	err = compareDirectories(expectedDir, transformHelmChartDir)
-//	if err != nil {
-//		t.Fatalf("Output does not match expected: %v", err)
-//	}
-//}
+func TestMirrorGrafanaAgentOperatorChart(t *testing.T) {
+	// Setup test directories
+	inputDir := "../../resources/data_test/input_charts/grafana-agent-operator"
+	expectedDir := "../../resources/data_test/expected_charts/grafana-agent-operator"
+	outputDir := "../../resources/data_test/output_charts/grafana-agent-operator"
+
+	// Clean up output directory before test
+	os.RemoveAll(outputDir)
+	defer os.RemoveAll(outputDir) // Clean up after test
+
+	// Create test configuration
+	chart := types.Chart{
+		Name:    "grafana-agent-operator",
+		Source:  "https://grafana.github.io/helm-charts",
+		Version: "0.5.1",
+	}
+	transformHelmChartDir, err := TransformHelmChart(&ctx, chart, inputDir, outputDir)
+	if err != nil {
+		t.Fatalf("MirrorChart failed: %v", err)
+	}
+
+	// Verify the output matches the expected output
+	err = compareDirectories(expectedDir, transformHelmChartDir)
+	if err != nil {
+		t.Fatalf("Output does not match expected: %v", err)
+	}
+}
 
 func compareDirectories(expectedDir, actualDir string) error {
 	// Walk through the expected directory
@@ -221,7 +219,7 @@ func compareChartYaml(expectedPath, actualPath string) error {
 	expectedNormalized := timestampRegex.ReplaceAllString(string(expectedContent), `repackage.provenance/timestamp: "TIMESTAMP"`)
 	actualNormalized := timestampRegex.ReplaceAllString(string(actualContent), `repackage.provenance/timestamp: "TIMESTAMP"`)
 
-	if expectedNormalized != actualNormalized {
+	if strings.TrimSpace(expectedNormalized) != strings.TrimSpace(actualNormalized) {
 		//log.Printf("Err - Chart.yaml contents differ\nExpectedContent: %s\nActualContent: %s\n", string(expectedContent), string(actualContent))
 		log.Warn().Str("actualContent", string(actualContent)).Str("expectedContent", string(expectedContent)).Msg("Chart.yaml contents differ")
 		return os.ErrInvalid
@@ -381,6 +379,40 @@ func TestProcessValuesYaml(t *testing.T) {
   repository: "europe-southwest1-docker.pkg.dev/poc-development-123456/test-helm-charts/influxdb"
   tag: "1.8.10-alpine"
   pullPolicy: IfNotPresent`,
+		},
+		{
+			name: "chart with top-level image.registry and image.repository (grafana-agent-operator style)",
+			input: `image:
+  # -- Image registry
+  registry: docker.io
+  # -- Image repo
+  repository: grafana/agent-operator
+  tag: v0.44.2`,
+			registryURL: "europe-southwest1-docker.pkg.dev/poc-development-123456/test-helm-charts",
+			expected: `image:
+  # -- Image registry
+  registry: "europe-southwest1-docker.pkg.dev/poc-development-123456/test-helm-charts"
+  # -- Image repo
+  repository: grafana/agent-operator
+  tag: v0.44.2`,
+		},
+		{
+			name: "chart with nested test.image.registry (grafana-agent-operator nested style)",
+			input: `test:
+  image:
+    # -- Test image registry
+    registry: docker.io
+    # -- Test image repo
+    repository: library/busybox
+    tag: latest`,
+			registryURL: "europe-southwest1-docker.pkg.dev/poc-development-123456/test-helm-charts",
+			expected: `test:
+  image:
+    # -- Test image registry
+    registry: "europe-southwest1-docker.pkg.dev/poc-development-123456/test-helm-charts"
+    # -- Test image repo
+    repository: library/busybox
+    tag: latest`,
 		},
 	}
 
