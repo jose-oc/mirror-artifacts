@@ -44,7 +44,7 @@ func pushChart(ctx *appcontext.AppContext, packagedChartPath string, chartName s
 			Str("chart_path", packagedChartPath).
 			Str("repo", repoRef).
 			Str("tag", tag).
-			Msg("Running in dry-run mode: chart push to GAR omitted.")
+			Msg("Running in dry-run mode: chart push to GAR skipped.")
 		log.Info().
 			Msgf("To push manually, run:\noras push %s %s:application/vnd.cncf.helm.chart.content.v1.tar+gzip --annotation mirrorctl/repackaged-by=%s/%s",
 				repoRef,

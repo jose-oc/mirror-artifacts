@@ -73,10 +73,11 @@ func MirrorCharts(ctx *appcontext.AppContext, cmd *cobra.Command) error {
 		fmt.Println("Images pushed:\n", strings.Join(values, "\n "))
 	}
 
-	fmt.Println("Charts pushed:\n", strings.Join(successfulCharts, "\n"))
+	fmt.Println("Charts pushed:\n", strings.Join(successfulCharts, "\n "))
 	if len(failedCharts) > 0 {
 		fmt.Println("Charts failed to push:\n", strings.Join(failedCharts, "\n"))
 	}
+	PrintDryRunMessage(ctx)
 
 	return nil
 }

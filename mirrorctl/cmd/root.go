@@ -1,11 +1,11 @@
 package cmd
 
 import (
-	"fmt"
 	"os"
 	"strings"
 
 	"github.com/jose-oc/mirror-artifacts/mirrorctl/pkg/appcontext"
+	"github.com/jose-oc/mirror-artifacts/mirrorctl/pkg/cmdutils"
 	"github.com/jose-oc/mirror-artifacts/mirrorctl/pkg/config"
 	"github.com/jose-oc/mirror-artifacts/mirrorctl/pkg/logging"
 	"github.com/rs/zerolog/log"
@@ -113,7 +113,7 @@ func initConfig() {
 		}
 	} else {
 		// log.Debug().Str("config_file", viper.ConfigFileUsed()).Msg("Using config file")
-		fmt.Println("Using config file:", viper.ConfigFileUsed())
+		cmdutils.PrintConfigFileInfo(ctx)
 	}
 	err := initLoggers()
 	if err != nil {

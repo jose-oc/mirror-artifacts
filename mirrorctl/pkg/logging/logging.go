@@ -31,13 +31,14 @@ func (h CallerHook) Run(e *zerolog.Event, level zerolog.Level, _ string) {
 }
 
 func SetupLogger() error {
+	// Set global time format for zerolog. This applies to all JSON output.
 	zerolog.TimeFieldFormat = time.RFC3339Nano
 	logLevel, err := zerolog.ParseLevel(viper.GetString("log_level"))
 	if err != nil {
 		logLevel = zerolog.InfoLevel
 	}
 
-	// File logger
+	// File logger setup
 	logFile := viper.GetString("log_file")
 	if logFile == "" {
 		logFile = version.AppName + ".log"
@@ -49,7 +50,8 @@ func SetupLogger() error {
 	}
 
 	var writers []io.Writer
-	writers = append(writers, file)
+
+	// 1. Setup Console Writer for STDOUT (for "verbose" mode)
 	if viper.GetBool("verbose") {
 		consoleWriter := zerolog.ConsoleWriter{
 			Out:        os.Stdout,
@@ -59,13 +61,33 @@ func SetupLogger() error {
 		writers = append(writers, consoleWriter)
 	}
 
+	// 2. Setup File Writer (conditional based on "prod_mode")
+	if viper.GetBool("prod_mode") {
+		// Production mode: Use the default zerolog writer for the file, which is JSON.
+		writers = append(writers, file)
+	} else {
+		// Non-production mode: Use ConsoleWriter for the file to get non-JSON,
+		// human-readable output with the full time format.
+		fileConsoleWriter := zerolog.ConsoleWriter{
+			Out: file,
+			// Use the full RFC3339Nano format for the file log
+			TimeFormat: zerolog.TimeFieldFormat,
+			NoColor:    true,
+		}
+		writers = append(writers, fileConsoleWriter)
+	}
+
+	// Combine all writers (STDOUT if verbose, and the file writer)
 	multi := zerolog.MultiLevelWriter(writers...)
+
+	// Create the logger
 	var logger zerolog.Logger
 	logger = zerolog.New(multi).With().Timestamp().Logger()
 
-	// Add the new custom CallerHook
+	// Add the custom CallerHook
 	logger = logger.Hook(CallerHook{})
 
+	// Set the global logger
 	log.Logger = logger.Level(logLevel)
 	return nil
 }
