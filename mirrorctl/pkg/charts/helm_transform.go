@@ -1,18 +1,5 @@
 package charts
 
-/*
-// GEMINI:
-// Modify this code to cover a new helm chart structure we are not covering yet.
-// I've written a test to cover it: TestMirrorGrafanaAgentOperatorChart, you can see the values.yaml file I'm trying to cover there
-// (the file is pkg/charts/tests/data_test/input_charts/grafana-agent-operator/values.yaml)
-// The current behaviour should work as it is: this is, priority is the global values if they are present.
-// if not, look for the image sections. In these `image` sections you can find `registry`, then change its value.
-// If not, look for `repo` or `repository` in each `image` sections and replace its value.
-//
-// Also, please add doc comments.
-
-*/
-
 import (
 	"bufio"
 	"fmt"
@@ -304,6 +291,17 @@ func handleGlobalImageRegistry(line string, registryURL string) (string, bool) {
 	return line, false
 }
 
+// handleImageRegistry handles the `registry` field within a top-level image section in a values.yaml file.
+// It takes a line of the values.yaml file and the registry URL as input.
+// It returns the modified line and a boolean indicating whether the line was modified.
+func handleImageRegistry(line string, registryURL string) (string, bool) {
+	if registryRegex.MatchString(line) {
+		indent := line[:strings.Index(line, "registry")]
+		return fmt.Sprintf("%sregistry: \"%s\"", indent, registryURL), true
+	}
+	return line, false
+}
+
 // handleImageRepo handles the `repo` and `repository` fields in a values.yaml file.
 // It takes a line of the values.yaml file and the registry URL as input.
 // It returns the modified line and a boolean indicating whether the line was modified.
@@ -407,6 +405,7 @@ func processValuesYAML(srcPath, destPath, registryURL string) error {
 	inGlobalSection := false
 	inImageSection := false
 	inTopImageSection := false
+	imageRegistryHandledInSection := false
 
 	for scanner.Scan() {
 		line := scanner.Text()
@@ -422,6 +421,7 @@ func processValuesYAML(srcPath, destPath, registryURL string) error {
 		// Check if we're entering the top-level image section
 		if !hasGlobal && imageSectionRegex.MatchString(line) {
 			inTopImageSection = true
+			imageRegistryHandledInSection = false // Reset flag when entering new top-level image section
 			writer.WriteString(line + "\n")
 			continue
 		}
@@ -452,16 +452,30 @@ func processValuesYAML(srcPath, destPath, registryURL string) error {
 
 		// Check if we're in the top-level image section and no global registry was found
 		if inTopImageSection && !hasGlobal {
-			if modifiedLine, replaced := handleImageRepo(line, registryURL); replaced {
-				foundRegistry = true
-				writer.WriteString(modifiedLine + "\n")
-				continue
+			// First try to handle registry field within the image section
+			if !imageRegistryHandledInSection {
+				if modifiedLine, replaced := handleImageRegistry(line, registryURL); replaced {
+					imageRegistryHandledInSection = true
+					foundRegistry = true
+					writer.WriteString(modifiedLine + "\n")
+					continue
+				}
+			}
+
+			// Only handle repo/repository if registry was not handled in this section
+			if !imageRegistryHandledInSection {
+				if modifiedLine, replaced := handleImageRepo(line, registryURL); replaced {
+					foundRegistry = true
+					writer.WriteString(modifiedLine + "\n")
+					continue
+				}
 			}
 
 			// Detect if we've left the top-level image section
 			trimmed := strings.TrimSpace(line)
 			if len(line) > 0 && line[0] != ' ' && line[0] != '#' && trimmed != "" {
 				inTopImageSection = false
+				imageRegistryHandledInSection = false // Reset flag when leaving image section
 			}
 		}
 

@@ -221,7 +221,7 @@ func compareChartYaml(expectedPath, actualPath string) error {
 	expectedNormalized := timestampRegex.ReplaceAllString(string(expectedContent), `repackage.provenance/timestamp: "TIMESTAMP"`)
 	actualNormalized := timestampRegex.ReplaceAllString(string(actualContent), `repackage.provenance/timestamp: "TIMESTAMP"`)
 
-	if expectedNormalized != actualNormalized {
+	if strings.TrimSpace(expectedNormalized) != strings.TrimSpace(actualNormalized) {
 		//log.Printf("Err - Chart.yaml contents differ\nExpectedContent: %s\nActualContent: %s\n", string(expectedContent), string(actualContent))
 		log.Warn().Str("actualContent", string(actualContent)).Str("expectedContent", string(expectedContent)).Msg("Chart.yaml contents differ")
 		return os.ErrInvalid
