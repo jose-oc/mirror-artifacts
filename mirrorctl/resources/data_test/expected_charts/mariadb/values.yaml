@@ -9,7 +9,7 @@
 ## @param global.storageClass Global storage class for dynamic provisioning
 ##
 global:
-  imageRegistry: "europe-southwest1-docker.pkg.dev/poc-development-123456/test-helm-charts"
+  imageRegistry: "europe-southwest1-docker.pkg.dev/poc-development-123456/test-container-images"
   ## E.g.
   ## imagePullSecrets:
   ##   - myRegistryKeySecretName
