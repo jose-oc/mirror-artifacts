@@ -97,7 +97,7 @@ func TransformHelmChart(ctx *appcontext.AppContext, chart types.Chart, srcChartP
 		case "values.yaml":
 			// Only process the root values.yaml, skip sub-chart values.yaml files
 			if filepath.Dir(relPath) == "." {
-				return processValuesYAML(path, destPath, ctx.Config.GCP.GARRepoCharts)
+				return processValuesYAML(path, destPath, ctx.Config.GCP.GARRepoContainers)
 			}
 			return copyFile(path, destPath)
 		default:
