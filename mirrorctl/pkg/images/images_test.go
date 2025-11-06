@@ -97,10 +97,10 @@ images:
 	assert.NoError(t, err)
 	file.Close()
 
-	mirrored, digests, err := MirrorImagesFromFile(appCtx, file.Name())
+	mirrored, failed, err := MirrorImagesFromFile(appCtx, file.Name())
 	assert.NoError(t, err)
 	assert.Equal(t, "us-central1-docker.pkg.dev/my-project/my-repo/ubuntu:22.04", mirrored["ubuntu:22.04"])
-	assert.Equal(t, "dry-run-digest", digests["ubuntu:22.04"])
+	assert.Equal(t, 0, len(failed))
 }
 
 func TestMirrorImages_GetTagError(t *testing.T) {
