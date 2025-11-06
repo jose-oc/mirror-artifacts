@@ -1,8 +1,8 @@
 name: Go release the binaries
 
 on:
-#  release:
-#    types: [created]
+  release:
+    types: [created]
   push:
     tags:
       - 'v*'
