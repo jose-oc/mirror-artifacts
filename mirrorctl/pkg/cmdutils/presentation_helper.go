@@ -57,7 +57,7 @@ func PrintChartsPushed(successfulCharts []string, failedCharts []string) {
 	}
 }
 
-func PrintImagesPushed(imagesPushed []string) {
+func PrintImagesPushed(imagesPushed, imagesFailed []string) {
 	if viper.GetBool("quiet") {
 		return
 	}
@@ -66,7 +66,13 @@ func PrintImagesPushed(imagesPushed []string) {
 
 	green := color.New(color.FgGreen).SprintFunc()
 	greenBold := color.New(color.FgGreen, color.Bold).SprintFunc()
+	redBold := color.New(color.FgHiRed).Add(color.Bold).SprintFunc()
+	red := color.New(color.FgHiRed).SprintFunc()
+
 	fmt.Printf("%s: \n %s\n", greenBold("Images pushed"), green(strings.Join(imagesPushed, "\n ")))
+	if len(imagesFailed) > 0 {
+		fmt.Printf("%s: \n %s\n", redBold("Images failed"), red(strings.Join(imagesFailed, "\n ")))
+	}
 }
 
 // PrintImageListByChart prints a map of images grouped by chart in a formatted, readable way.

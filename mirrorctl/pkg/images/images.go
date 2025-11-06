@@ -25,7 +25,7 @@ import (
 //   - A map of strings to strings, where the keys are the source image names and the values are the destination image names.
 //   - A map of strings to strings, where the keys are the source image names and the values are the image digests.
 //   - An error if the mirroring fails.
-func MirrorImagesFromFile(ctx *appcontext.AppContext, imagesFile string) (map[string]string, map[string]string, error) {
+func MirrorImagesFromFile(ctx *appcontext.AppContext, imagesFile string) (map[string]string, []types.FailedImage, error) {
 	if imagesFile == "" {
 		return nil, nil, fmt.Errorf("images file path is required")
 	}
@@ -52,21 +52,28 @@ func MirrorImagesFromFile(ctx *appcontext.AppContext, imagesFile string) (map[st
 //
 // It returns three values:
 //   - A map of strings to strings, where the keys are the source image names and the values are the destination image names.
-//   - A map of strings to strings, where the keys are the source image names and the values are the image digests.
+//   - A list of types.FailedImage, of the images that failed to mirror. Each element of the list is a map with two keys: image and error, where error is the error message.
 //   - An error if the mirroring fails.
-func MirrorImages(ctx *appcontext.AppContext, imagesList types.ImagesList) (map[string]string, map[string]string, error) {
-	// Track failed images
-	failedImages := make([]map[string]string, 0)
+func MirrorImages(ctx *appcontext.AppContext, imagesList types.ImagesList) (map[string]string, []types.FailedImage, error) {
+	// Track failed images with error reasons
+	failedImages := make([]types.FailedImage, 0)
 	mirroredImages := make(map[string]string)
-	imageDigests := make(map[string]string)
 
 	for _, img := range imagesList.Images {
 		log.Debug().Str("name", img.Name).Str("source", img.Source).Msg("Processing image")
 
+		// Define a helper function to handle failure for cleaner flow
+		handleFailure := func(err error, msg string) {
+			log.Error().Err(err).Str("image", img.Source).Msg(msg)
+			failedImages = append(failedImages, types.FailedImage{
+				Image: img,
+				Error: err.Error(),
+			})
+		}
+
 		tag, err := getImageTag(img)
 		if err != nil {
-			log.Error().Err(err).Str("image", img.Source).Msg("Failed to get image tag")
-			failedImages = append(failedImages, map[string]string{"name": img.Name, "error": err.Error()})
+			handleFailure(err, "Failed to get image tag")
 			continue
 		}
 		targetRepoPath := fmt.Sprintf("%s/%s:%s", ctx.Config.GCP.GARRepoContainers, img.Name, tag)
@@ -76,7 +83,6 @@ func MirrorImages(ctx *appcontext.AppContext, imagesList types.ImagesList) (map[
 				Str("equivalent command", fmt.Sprintf("oras cp %s %s", img.Source, targetRepoPath)).
 				Msg("Dry-run: Would mirror image to GAR")
 			mirroredImages[img.Source] = targetRepoPath
-			imageDigests[img.Source] = "dry-run-digest"
 			continue
 		}
 
@@ -84,15 +90,13 @@ func MirrorImages(ctx *appcontext.AppContext, imagesList types.ImagesList) (map[
 		// Equivalent to: oras cp <source> <target>
 		sourceRepo, err := remote.NewRepository(img.Source)
 		if err != nil {
-			log.Error().Err(err).Str("source", img.Source).Msg("Failed to initialize source repository")
-			failedImages = append(failedImages, map[string]string{"name": img.Name, "error": err.Error()})
+			handleFailure(err, "Failed to initialize source repository")
 			continue
 		}
 
 		targetRepo, err := remote.NewRepository(targetRepoPath)
 		if err != nil {
-			log.Error().Err(err).Str("target", targetRepoPath).Msg("Failed to initialize target repository")
-			failedImages = append(failedImages, map[string]string{"name": img.Name, "error": err.Error()})
+			handleFailure(err, "Failed to initialize target repository")
 			continue
 		}
 
@@ -100,8 +104,7 @@ func MirrorImages(ctx *appcontext.AppContext, imagesList types.ImagesList) (map[
 		cmd := exec.Command("gcloud", "auth", "print-access-token")
 		token, err := cmd.Output()
 		if err != nil {
-			log.Error().Err(err).Msg("Failed to get gcloud access token")
-			failedImages = append(failedImages, map[string]string{"name": img.Name, "error": err.Error()})
+			handleFailure(err, "Failed to get gcloud access token")
 			continue
 		}
 
@@ -118,13 +121,11 @@ func MirrorImages(ctx *appcontext.AppContext, imagesList types.ImagesList) (map[
 		// Check if image already exists in GAR (idempotency)
 		sourceDesc, err := sourceRepo.Resolve(context.Background(), sourceRepo.Reference.Reference)
 		if err != nil {
-			log.Error().Err(err).Str("source", img.Source).Msg("Failed to resolve source image")
-			failedImages = append(failedImages, map[string]string{"name": img.Name, "error": err.Error()})
+			handleFailure(err, "Failed to resolve source image")
 			continue
 		}
 
 		mirroredImages[img.Source] = targetRepoPath
-		imageDigests[img.Source] = sourceDesc.Digest.String()
 
 		targetDesc, err := targetRepo.Resolve(context.Background(), targetRepo.Reference.Reference)
 		if err == nil && targetDesc.Digest == sourceDesc.Digest {
@@ -132,20 +133,21 @@ func MirrorImages(ctx *appcontext.AppContext, imagesList types.ImagesList) (map[
 			continue
 		} else if err == nil && targetDesc.Digest != sourceDesc.Digest && ctx.Config.Options.NotifyTagMutations {
 			// TODO test this scenario
+			mirrorErr := fmt.Errorf("image %s tag points to different digest in GAR, please manually check", img.Source)
 			log.Warn().
 				Str("name", img.Name).
 				Str("source_digest", sourceDesc.Digest.String()).
 				Str("target_digest", targetDesc.Digest.String()).
 				Msg("Tag points to different digest in GAR, please manually check")
-			failedImages = append(failedImages, map[string]string{"name": img.Name, "error": fmt.Errorf("image %s tag points to different digest in GAR, please manually check", img.Source).Error()})
+			handleFailure(mirrorErr, "Tag mutation detected")
+			continue
 		}
 
 		// Mirror the image
 		// Equivalent to: oras cp <source> <target>
 		_, err = oras.Copy(context.Background(), sourceRepo, sourceRepo.Reference.Reference, targetRepo, targetRepo.Reference.Reference, oras.DefaultCopyOptions)
 		if err != nil {
-			log.Error().Err(err).Str("source", img.Source).Str("target", targetRepoPath).Msg("Failed to mirror image")
-			failedImages = append(failedImages, map[string]string{"name": img.Name, "error": err.Error()})
+			handleFailure(err, "Failed to mirror image")
 			continue
 		}
 
@@ -157,11 +159,11 @@ func MirrorImages(ctx *appcontext.AppContext, imagesList types.ImagesList) (map[
 
 	// Log failed images in JSON format for GitHub Actions
 	if len(failedImages) > 0 {
-		failedJSON, _ := json.Marshal(map[string][]map[string]string{"failed_images": failedImages})
+		failedJSON, _ := json.Marshal(map[string][]types.FailedImage{"failed_images": failedImages})
 		log.Warn().RawJSON("failed_images", failedJSON).Msg("Some images failed to mirror")
 	}
 
-	return mirroredImages, imageDigests, nil
+	return mirroredImages, failedImages, nil
 }
 
 // getImageTag extracts the tag from an image source string.

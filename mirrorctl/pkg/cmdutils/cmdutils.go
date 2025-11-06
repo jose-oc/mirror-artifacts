@@ -3,6 +3,7 @@ package cmdutils
 import (
 	"errors"
 	"fmt"
+	"sort"
 
 	"github.com/jose-oc/mirror-artifacts/mirrorctl/pkg/appcontext"
 	"github.com/jose-oc/mirror-artifacts/mirrorctl/pkg/charts"
@@ -26,17 +27,13 @@ func MirrorImages(ctx *appcontext.AppContext, _ *cobra.Command) error {
 	if ctx.DryRun {
 		log.Info().Msg("Dry-run: Would mirror images to GAR")
 	}
-	imagesPushed, _, err := images.MirrorImagesFromFile(ctx, imagesFile)
+	imagesPushed, imagesFailed, err := images.MirrorImagesFromFile(ctx, imagesFile)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to mirror images")
 		return fmt.Errorf("failed to mirror images: %w", err)
 	}
 
-	var imagesPushedGar []string
-	for _, img := range imagesPushed {
-		imagesPushedGar = append(imagesPushedGar, img)
-	}
-	PrintImagesPushed(imagesPushedGar)
+	printImagesSummary(imagesPushed, imagesFailed)
 	PrintDryRunMessage(ctx)
 	return nil
 }
@@ -69,17 +66,13 @@ func MirrorCharts(ctx *appcontext.AppContext, cmd *cobra.Command) error {
 		sortedImages := datastructures.DeduplicateAndSortImages(imageListByChart)
 		var imagesList types.ImagesList
 		imagesList.Images = sortedImages
-		imagesPushed, _, err := images.MirrorImages(ctx, imagesList)
+		imagesPushed, imagesFailed, err := images.MirrorImages(ctx, imagesList)
 		if err != nil {
 			return fmt.Errorf("failed to mirror images: %w", err)
 		}
 		log.Debug().Interface("images pushed", imagesPushed).Msg("Mirroring images")
 
-		var imagesPushedGar []string
-		for _, img := range imagesPushed {
-			imagesPushedGar = append(imagesPushedGar, img)
-		}
-		PrintImagesPushed(imagesPushedGar)
+		printImagesSummary(imagesPushed, imagesFailed)
 	}
 
 	PrintChartsPushed(successfulCharts, failedCharts)
@@ -146,4 +139,21 @@ func validateChartsFlag(chartsFile string) error {
 		return fmt.Errorf("%w: %s", ErrMissingRequiredParam, "charts file path")
 	}
 	return nil
+}
+
+func printImagesSummary(imagesPushed map[string]string, imagesFailed []types.FailedImage) {
+	log.Debug().Interface("images pushed", imagesPushed).Msg("Mirroring images")
+	log.Debug().Interface("images failed", imagesFailed).Msg("Failed to mirror images")
+
+	var imagesPushedGar []string
+	for _, img := range imagesPushed {
+		imagesPushedGar = append(imagesPushedGar, img)
+	}
+	var imagesFailedGar []string
+	for _, img := range imagesFailed {
+		imagesFailedGar = append(imagesFailedGar, fmt.Sprintf("%s (%s)", img.Image.Source, img.Error))
+	}
+	sort.Strings(imagesPushedGar)
+	sort.Strings(imagesFailedGar)
+	PrintImagesPushed(imagesPushedGar, imagesFailedGar)
 }

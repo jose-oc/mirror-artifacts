@@ -14,6 +14,12 @@ type ImagesList struct {
 	Images []Image `yaml:"images" json:"images"`
 }
 
+// FailedImage wraps a types.Image with an error reason.
+type FailedImage struct {
+	Image Image  `yaml:"image" json:"image"`
+	Error string `yaml:"error" json:"error"`
+}
+
 // Chart represents a Helm chart with its name, source, and version.
 // The source is the URL of the Helm repository.
 // The name is the name of the chart in the repository.
