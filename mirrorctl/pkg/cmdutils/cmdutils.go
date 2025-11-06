@@ -114,6 +114,8 @@ func ExtractImagesFromHelmCharts(ctx *appcontext.AppContext, cmd *cobra.Command)
 		if err != nil {
 			return fmt.Errorf("failed to write images to directory %s: %w", outputDir, err)
 		}
+	} else {
+		PrintImageListByChart(imageListByChart)
 	}
 
 	return nil

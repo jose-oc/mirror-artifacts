@@ -20,10 +20,11 @@ import (
 
 // MirrorImagesFromFile mirrors a list of container images from a file to a Google Artifact Registry.
 // It takes an application context and the path to the file containing the list of images as input.
+//
 // It returns three values:
-// - A map of strings to strings, where the keys are the source image names and the values are the destination image names.
-// - A map of strings to strings, where the keys are the source image names and the values are the image digests.
-// - An error if the mirroring fails.
+//   - A map of strings to strings, where the keys are the source image names and the values are the destination image names.
+//   - A map of strings to strings, where the keys are the source image names and the values are the image digests.
+//   - An error if the mirroring fails.
 func MirrorImagesFromFile(ctx *appcontext.AppContext, imagesFile string) (map[string]string, map[string]string, error) {
 	if imagesFile == "" {
 		return nil, nil, fmt.Errorf("images file path is required")
@@ -48,12 +49,13 @@ func MirrorImagesFromFile(ctx *appcontext.AppContext, imagesFile string) (map[st
 
 // MirrorImages mirrors a list of container images to a Google Artifact Registry.
 // It takes an application context and a list of images as input.
+//
 // It returns three values:
-// - A map of strings to strings, where the keys are the source image names and the values are the destination image names.
-// - A map of strings to strings, where the keys are the source image names and the values are the image digests.
-// - An error if the mirroring fails.
+//   - A map of strings to strings, where the keys are the source image names and the values are the destination image names.
+//   - A map of strings to strings, where the keys are the source image names and the values are the image digests.
+//   - An error if the mirroring fails.
 func MirrorImages(ctx *appcontext.AppContext, imagesList types.ImagesList) (map[string]string, map[string]string, error) {
-	// Track failed images for GitHub Actions
+	// Track failed images
 	failedImages := make([]map[string]string, 0)
 	mirroredImages := make(map[string]string)
 	imageDigests := make(map[string]string)
