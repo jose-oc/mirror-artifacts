@@ -64,7 +64,7 @@ func TransformHelmChart(ctx *appcontext.AppContext, chart types.Chart, srcChartP
 		log.Error().Err(err).Str("path", transformedChartPath).Msg("Failed to create output directory")
 		return "", err
 	}
-
+	// TODO use filepath.WalkDir? it's more efficient
 	err := filepath.Walk(srcChartPath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -92,11 +92,17 @@ func TransformHelmChart(ctx *appcontext.AppContext, chart types.Chart, srcChartP
 			// Only process the root Chart.yaml
 			if filepath.Dir(relPath) == "." {
 				return processChartYAML(path, destPath, ctx.Config.Options.Suffix, chart.Source)
+			} else if strings.HasPrefix(filepath.Dir(relPath), "charts/") {
+				log.Debug().Str("destPath", destPath).Str("path", relPath).Msg("Processing DEP charts")
+				return processChartYAML(path, destPath, ctx.Config.Options.Suffix, chart.Source)
 			}
 			return copyFile(path, destPath)
 		case "values.yaml":
 			// Only process the root values.yaml, skip sub-chart values.yaml files
 			if filepath.Dir(relPath) == "." {
+				return processValuesYAML(path, destPath, ctx.Config.GCP.GARRepoContainers)
+			} else if strings.HasPrefix(filepath.Dir(relPath), "charts/") {
+				log.Debug().Str("destPath", destPath).Str("path", relPath).Msg("Processing DEP values")
 				return processValuesYAML(path, destPath, ctx.Config.GCP.GARRepoContainers)
 			}
 			return copyFile(path, destPath)
