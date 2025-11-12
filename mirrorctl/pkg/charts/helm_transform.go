@@ -31,9 +31,9 @@ var (
 	// registryRegex matches a 'registry:' line within an image section.
 	registryRegex = regexp.MustCompile(`^\s+registry:\s*`) // any *.registry
 	// imageSectionRegex matches an 'image:' section at any indentation level.
-	imageSectionRegex = regexp.MustCompile(`^\s*image:\s*`) // any image: section
+	imageSectionRegex = regexp.MustCompile(`^\s*(?:[a-zA-Z0-9]+Image|image):\s*`) // any image: section or prefixImage: section
 	// anyImageSectionRegex matches any 'image:' section, capturing indentation.
-	anyImageSectionRegex = regexp.MustCompile(`^(\s*)image:\s*$`)
+	// anyImageSectionRegex = regexp.MustCompile(`^(\s*)image:\s*$`)
 	// repoRegex matches 'repo:' or 'repository:' lines.
 	repoRegex = regexp.MustCompile(`^\s+(repo|repository):\s*(.*)`)
 )

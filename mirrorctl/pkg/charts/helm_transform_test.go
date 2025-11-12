@@ -427,8 +427,7 @@ imagePullSecrets: []
 mcImage:
   repository: quay.io/minio/mc
   tag: RELEASE.2022-08-11T00-30-48Z
-  pullPolicy: IfNotPresent
-`,
+  pullPolicy: IfNotPresent`,
 			registryURL: "europe-southwest1-docker.pkg.dev/poc-development-123456/test-helm-charts",
 			expected: `image:
   repository: "europe-southwest1-docker.pkg.dev/poc-development-123456/test-helm-charts/quay.io/minio/minio"
@@ -441,8 +440,7 @@ imagePullSecrets: []
 mcImage:
   repository: "europe-southwest1-docker.pkg.dev/poc-development-123456/test-helm-charts/quay.io/minio/mc"
   tag: RELEASE.2022-08-11T00-30-48Z
-  pullPolicy: IfNotPresent
-`,
+  pullPolicy: IfNotPresent`,
 		},
 	}
 
