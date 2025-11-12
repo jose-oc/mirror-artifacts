@@ -414,6 +414,36 @@ func TestProcessValuesYaml(t *testing.T) {
     repository: library/busybox
     tag: latest`,
 		},
+		{
+			name: "chart with top-level prefixed image (minio nested style)",
+			input: `image:
+  repository: quay.io/minio/minio
+  tag: RELEASE.2022-08-13T21-54-44Z
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+# - name: "image-pull-secret"
+
+mcImage:
+  repository: quay.io/minio/mc
+  tag: RELEASE.2022-08-11T00-30-48Z
+  pullPolicy: IfNotPresent
+`,
+			registryURL: "europe-southwest1-docker.pkg.dev/poc-development-123456/test-helm-charts",
+			expected: `image:
+  repository: "europe-southwest1-docker.pkg.dev/poc-development-123456/test-helm-charts/quay.io/minio/minio"
+  tag: RELEASE.2022-08-13T21-54-44Z
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+# - name: "image-pull-secret"
+
+mcImage:
+  repository: "europe-southwest1-docker.pkg.dev/poc-development-123456/test-helm-charts/quay.io/minio/mc"
+  tag: RELEASE.2022-08-11T00-30-48Z
+  pullPolicy: IfNotPresent
+`,
+		},
 	}
 
 	for _, tt := range tests {

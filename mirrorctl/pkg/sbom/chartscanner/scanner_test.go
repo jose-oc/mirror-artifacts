@@ -57,7 +57,7 @@ func TestScanChart(t *testing.T) {
 				{Name: "loki-helm-test", Source: "europe-southwest1-docker.pkg.dev/poc-development-123456/test-container-images/grafana/loki-helm-test:latest"},
 				{Name: "loki", Source: "europe-southwest1-docker.pkg.dev/poc-development-123456/test-container-images/grafana/loki:latest"},
 				{Name: "nginx-unprivileged", Source: "europe-southwest1-docker.pkg.dev/poc-development-123456/test-container-images/nginxinc/nginx-unprivileged:1.19-alpine"},
-				{Name: "mc", Source: "quay.io/minio/mc:RELEASE.2022-08-11T00-30-48Z"},
+				{Name: "mc", Source: "europe-southwest1-docker.pkg.dev/poc-development-123456/test-container-images/quay.io/minio/mc:RELEASE.2022-08-11T00-30-48Z"},
 				{Name: "minio", Source: "europe-southwest1-docker.pkg.dev/poc-development-123456/test-container-images/quay.io/minio/minio:RELEASE.2022-08-13T21-54-44Z"},
 			},
 		},

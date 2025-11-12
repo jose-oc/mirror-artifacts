@@ -1,7 +1,6 @@
 package tests
 
 import (
-	"fmt"
 	"path/filepath"
 	"sort"
 	"testing"
@@ -69,8 +68,4 @@ func TestTransformedChartImagesMatchMirroredImages(t *testing.T) {
 
 	// 5. Compare and Assert
 	assert.Equal(t, mirroredImagePaths, actualTransformedImagePaths, "Mirrored image paths should match transformed chart image paths")
-
-	// To read the easier
-	fmt.Println("Images mirrored from the original chart: ", mirroredImagePaths)
-	fmt.Println("Images found in the transformed chart: ", actualTransformedImagePaths)
 }
