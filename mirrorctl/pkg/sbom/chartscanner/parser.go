@@ -2,6 +2,7 @@ package chartscanner
 
 import (
 	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 
@@ -13,6 +14,132 @@ import (
 var (
 	templatedValueRegex = regexp.MustCompile(`{{.*}}`)
 )
+
+// extractGlobalRegistry looks for global.imageRegistry or global.image.registry in values.yaml/yml
+func extractGlobalRegistry(chartPath string) string {
+	// Try values.yaml first, then values.yml
+	valuesFiles := []string{"values.yaml", "values.yml"}
+
+	for _, fileName := range valuesFiles {
+		valuesPath := filepath.Join(chartPath, fileName)
+		if _, err := os.Stat(valuesPath); err == nil {
+			log.Debug().Msgf("Checking for global registry in: %s", valuesPath)
+
+			data, err := os.ReadFile(valuesPath)
+			if err != nil {
+				log.Warn().Err(err).Msgf("Failed to read values file: %s", valuesPath)
+				continue
+			}
+
+			var node yaml.Node
+			if err := yaml.Unmarshal(data, &node); err != nil {
+				log.Warn().Err(err).Msgf("Failed to parse values file: %s", valuesPath)
+				continue
+			}
+
+			registry := findGlobalRegistry(&node)
+			if registry != "" {
+				return registry
+			}
+		}
+	}
+
+	return ""
+}
+
+// findGlobalRegistry searches for global.imageRegistry or global.image.registry in YAML
+func findGlobalRegistry(node *yaml.Node) string {
+	if node == nil || node.Kind != yaml.DocumentNode {
+		return ""
+	}
+
+	for _, content := range node.Content {
+		if content.Kind == yaml.MappingNode {
+			var imageRegistry, imageRegistryNested string
+
+			for i := 0; i < len(content.Content); i += 2 {
+				keyNode := content.Content[i]
+				valueNode := content.Content[i+1]
+
+				if strings.ToLower(keyNode.Value) == "global" && valueNode.Kind == yaml.MappingNode {
+					// Look for both patterns
+					for j := 0; j < len(valueNode.Content); j += 2 {
+						globalKey := valueNode.Content[j]
+						globalValue := valueNode.Content[j+1]
+
+						if strings.ToLower(globalKey.Value) == "imageregistry" {
+							if globalValue.Kind == yaml.ScalarNode && !isTemplatedValue(globalValue.Value) {
+								imageRegistry = globalValue.Value
+							}
+						} else if strings.ToLower(globalKey.Value) == "image" && globalValue.Kind == yaml.MappingNode {
+							// Look for nested registry under global.image
+							for k := 0; k < len(globalValue.Content); k += 2 {
+								imageKey := globalValue.Content[k]
+								imageValue := globalValue.Content[k+1]
+
+								if strings.ToLower(imageKey.Value) == "registry" {
+									if imageValue.Kind == yaml.ScalarNode && !isTemplatedValue(imageValue.Value) {
+										imageRegistryNested = imageValue.Value
+									}
+								}
+							}
+						}
+					}
+
+					// Determine which registry to use
+					if imageRegistry != "" && imageRegistryNested != "" {
+						log.Warn().Msg("Both global.imageRegistry and global.image.registry found. Using global.imageRegistry")
+						return imageRegistry
+					} else if imageRegistry != "" {
+						return imageRegistry
+					} else if imageRegistryNested != "" {
+						return imageRegistryNested
+					}
+				}
+			}
+		}
+	}
+
+	return ""
+}
+
+// applyGlobalRegistry replaces the registry portion of an image with the global registry
+func applyGlobalRegistry(img types.Image, globalRegistry string) types.Image {
+	source := img.Source
+
+	// Split source into registry, repository, and tag
+	var repository, tag string
+
+	// Extract tag/digest first
+	if lastColon := strings.LastIndex(source, ":"); lastColon != -1 {
+		// Check if it's a tag (not part of registry port)
+		if !strings.Contains(source[lastColon:], "/") {
+			tag = source[lastColon:]
+			source = source[:lastColon]
+		}
+	}
+
+	// Extract repository (everything after the first slash, or entire string if no slash)
+	if firstSlash := strings.Index(source, "/"); firstSlash != -1 {
+		repository = source[firstSlash+1:]
+	} else {
+		// No registry specified, entire string is repository
+		repository = source
+	}
+
+	// Construct new source with global registry
+	newSource := globalRegistry + "/" + repository + tag
+
+	log.Debug().
+		Str("original", img.Source).
+		Str("new", newSource).
+		Msg("Applied global registry override")
+
+	return types.Image{
+		Name:   img.Name,
+		Source: newSource,
+	}
+}
 
 // parseYAML parses a YAML file and returns a list of container images found in the file.
 // It takes the path to the YAML file as input.

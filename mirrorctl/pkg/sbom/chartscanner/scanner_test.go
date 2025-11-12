@@ -46,17 +46,17 @@ func TestScanChart(t *testing.T) {
 		},
 		{
 			name: "loki chart (expected)",
-			// TODO Fix this test, it should expect using the GAR in all the images, it's not atm because the parser is not managing the global section
+			// TODO fix mc - the root problem is that transform isn't changing it
 			chartPath: "../../../resources/data_test/expected_charts/loki",
 			expectedImages: []types.Image{
 				{Name: "agent-operator", Source: "europe-southwest1-docker.pkg.dev/poc-development-123456/test-container-images/grafana/agent-operator:v0.25.1"},
-				{Name: "kubectl", Source: "docker.io/bitnami/kubectl:latest"},
-				{Name: "enterprise-logs-provisioner", Source: "docker.io/grafana/enterprise-logs-provisioner:latest"},
-				{Name: "enterprise-logs", Source: "docker.io/grafana/enterprise-logs:latest"},
-				{Name: "loki-canary", Source: "docker.io/grafana/loki-canary:latest"},
-				{Name: "loki-helm-test", Source: "docker.io/grafana/loki-helm-test:latest"},
-				{Name: "loki", Source: "docker.io/grafana/loki:latest"},
-				{Name: "nginx-unprivileged", Source: "docker.io/nginxinc/nginx-unprivileged:1.19-alpine"},
+				{Name: "kubectl", Source: "europe-southwest1-docker.pkg.dev/poc-development-123456/test-container-images/bitnami/kubectl:latest"},
+				{Name: "enterprise-logs-provisioner", Source: "europe-southwest1-docker.pkg.dev/poc-development-123456/test-container-images/grafana/enterprise-logs-provisioner:latest"},
+				{Name: "enterprise-logs", Source: "europe-southwest1-docker.pkg.dev/poc-development-123456/test-container-images/grafana/enterprise-logs:latest"},
+				{Name: "loki-canary", Source: "europe-southwest1-docker.pkg.dev/poc-development-123456/test-container-images/grafana/loki-canary:latest"},
+				{Name: "loki-helm-test", Source: "europe-southwest1-docker.pkg.dev/poc-development-123456/test-container-images/grafana/loki-helm-test:latest"},
+				{Name: "loki", Source: "europe-southwest1-docker.pkg.dev/poc-development-123456/test-container-images/grafana/loki:latest"},
+				{Name: "nginx-unprivileged", Source: "europe-southwest1-docker.pkg.dev/poc-development-123456/test-container-images/nginxinc/nginx-unprivileged:1.19-alpine"},
 				{Name: "mc", Source: "quay.io/minio/mc:RELEASE.2022-08-11T00-30-48Z"},
 				{Name: "minio", Source: "europe-southwest1-docker.pkg.dev/poc-development-123456/test-container-images/quay.io/minio/minio:RELEASE.2022-08-13T21-54-44Z"},
 			},

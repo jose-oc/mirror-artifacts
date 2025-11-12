@@ -18,6 +18,12 @@ func ScanChart(chartPath string) ([]types.Image, error) {
 
 	log.Debug().Msgf("Scanning chart directory: %s", chartPath)
 
+	// First, extract global registry from values.yaml or values.yml
+	globalRegistry := extractGlobalRegistry(chartPath)
+	if globalRegistry != "" {
+		log.Debug().Msgf("Found global registry: %s", globalRegistry)
+	}
+
 	err := filepath.Walk(chartPath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -35,6 +41,14 @@ func ScanChart(chartPath string) ([]types.Image, error) {
 				return nil // Don't stop the walk, just skip this file
 			}
 			for _, img := range images {
+				// Apply global registry override if present
+				isSubChart, err := isSubChart(path, chartPath)
+				if err != nil {
+					continue
+				}
+				if globalRegistry != "" && globalRegistry != "null" && !isSubChart {
+					img = applyGlobalRegistry(img, globalRegistry)
+				}
 				uniqueImages[img.Source] = img
 			}
 		}
@@ -56,4 +70,15 @@ func ScanChart(chartPath string) ([]types.Image, error) {
 	})
 
 	return result, nil
+}
+
+// isSubChart returns true if the path belongs to a chart dependency or subchart
+func isSubChart(path string, chartPath string) (bool, error) {
+	relPath, err := filepath.Rel(chartPath, path)
+	if err != nil {
+		log.Warn().Err(err).Msgf("Failed to resolve relative path: %s", path)
+		return false, err
+	}
+
+	return strings.HasPrefix(relPath, "charts"+string(os.PathSeparator)), nil
 }
