@@ -28,7 +28,7 @@ serviceAccount:
 
 image:
   # -- Image registry
-  registry: docker.io
+  registry: "europe-southwest1-docker.pkg.dev/poc-development-123456/test-container-images"
   # -- Image repo
   repository: grafana/agent-operator
   # -- Image tag

@@ -1,4 +1,11 @@
 apiVersion: v2
+annotations:
+  # --- Provenance Metadata ---
+  repackage.provenance/repackaged-by: "mirrorctl dev"
+  repackage.provenance/original-chart-url: "https://grafana.github.io/helm-charts"
+  repackage.provenance/original-chart-name: "grafana-agent-operator"
+  repackage.provenance/original-chart-version: "0.2.3"
+  repackage.provenance/timestamp: "2025-11-12T10:18:24Z"
 appVersion: 0.25.1
 description: A Helm chart for Grafana Agent Operator
 home: https://grafana.com/docs/agent/latest/
@@ -10,4 +17,4 @@ name: grafana-agent-operator
 sources:
 - https://github.com/grafana/agent/tree/v0.25.1/pkg/operator
 type: application
-version: 0.2.3
+version: 0.2.3-poc

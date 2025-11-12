@@ -1,4 +1,11 @@
 apiVersion: v1
+annotations:
+  # --- Provenance Metadata ---
+  repackage.provenance/repackaged-by: "mirrorctl dev"
+  repackage.provenance/original-chart-url: "https://grafana.github.io/helm-charts"
+  repackage.provenance/original-chart-name: "minio"
+  repackage.provenance/original-chart-version: "4.0.12"
+  repackage.provenance/timestamp: "2025-11-12T10:18:24Z"
 appVersion: RELEASE.2022-08-13T21-54-44Z
 description: Multi-Cloud Object Storage
 home: https://min.io
@@ -15,4 +22,4 @@ maintainers:
 name: minio
 sources:
 - https://github.com/minio/minio
-version: 4.0.12
+version: 4.0.12-poc
