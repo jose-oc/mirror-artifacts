@@ -47,7 +47,7 @@ func parseImageSource(source string) (repository, tag string) {
 
 // ScanChart scans a Helm chart directory for container images.
 // It walks through the directory, parses YAML files, and extracts image references.
-// For images with the "latest" tag, it also returns an image tagged with the chart's appVersion.
+// For images with the "latest" tag, it replaces them with an image tagged with the chart's appVersion.
 // It returns a slice of unique images found in the chart.
 func ScanChart(chartPath string) ([]types.Image, error) {
 	uniqueImages := make(map[string]types.Image)
@@ -94,12 +94,15 @@ func ScanChart(chartPath string) ([]types.Image, error) {
 					if chartYamlFile != "" {
 						appVersion := getAppVersionFromChartYaml(chartYamlFile)
 						if appVersion != "" {
+							// Remove the 'latest' tagged image
+							delete(uniqueImages, img.Source)
+
 							appVersionImage := types.Image{
 								Name:   img.Name, // Keep the original name
 								Source: repo + ":" + appVersion,
 							}
 							uniqueImages[appVersionImage.Source] = appVersionImage
-							log.Debug().Msgf("Added appVersion image: %s for latest image: %s", appVersionImage.Source, img.Source)
+							log.Debug().Msgf("Replaced latest image: %s with appVersion image: %s", img.Source, appVersionImage.Source)
 						}
 					}
 				}
