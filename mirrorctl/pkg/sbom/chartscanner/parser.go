@@ -188,8 +188,8 @@ func extractImagesFromNode(node *yaml.Node, images *[]types.Image, parentKey str
 					if imageSource == "" || imageSource == "null" { // Skip if image source is empty or "null"
 						return
 					}
-					if !strings.Contains(imageSource, ":") || strings.HasSuffix(imageSource, ":null") { // If no tag is present or tag is :null, append :latest
-						imageSource = strings.TrimSuffix(imageSource, ":null") + ":latest"
+					if !strings.Contains(imageSource, ":") {
+						imageSource = imageSource + ":"
 					}
 					imageName := extractImageName(imageSource)
 					if imageName == "" || imageName == "null" { // Skip if image name is invalid
@@ -256,12 +256,7 @@ func extractImageFromMapping(node *yaml.Node, images *[]types.Image) {
 		source = registry + "/" + repository
 	}
 
-	// If tag is empty or "null", append :latest
-	if tag == "" || tag == "null" {
-		source = source + ":latest"
-	} else {
-		source = source + ":" + tag
-	}
+	source = source + ":" + tag
 
 	imageName := extractImageName(source)
 	// Ensure imageName is not empty or "null" before appending

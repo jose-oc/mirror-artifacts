@@ -11,15 +11,16 @@ import (
 	"gopkg.in/yaml.v3" // Import yaml.v3
 )
 
-// chartYaml represents a simplified structure of Chart.yaml to extract appVersion.
+// chartYaml represents a simplified structure of Chart.yaml to extract appVersion and version.
 type chartYaml struct {
 	AppVersion string `yaml:"appVersion"`
+	Version    string `yaml:"version"`
 }
 
-// getAppVersionFromChartYaml reads a Chart.yaml file and extracts the appVersion.
-// It returns the appVersion as a string, or an empty string if not found or an error occurs.
+// getAppVersionFromChartYaml reads a Chart.yaml file and extracts the appVersion, falling back to version.
+// It returns the version as a string, or an empty string if not found or an error occurs.
 func getAppVersionFromChartYaml(chartYamlPath string) string {
-	log.Debug().Str("chartYamlPath", chartYamlPath).Msg("Attempting to read Chart.yaml for appVersion")
+	log.Debug().Str("chartYamlPath", chartYamlPath).Msg("Attempting to read Chart.yaml for version")
 	content, err := os.ReadFile(chartYamlPath)
 	if err != nil {
 		log.Debug().Err(err).Str("chartYamlPath", chartYamlPath).Msg("Failed to read Chart.yaml")
@@ -31,23 +32,34 @@ func getAppVersionFromChartYaml(chartYamlPath string) string {
 		log.Debug().Err(err).Str("chartYamlPath", chartYamlPath).Msg("Failed to unmarshal Chart.yaml")
 		return ""
 	}
-	log.Debug().Str("chartYamlPath", chartYamlPath).Str("appVersion", chart.AppVersion).Msg("Extracted appVersion from Chart.yaml")
-	return chart.AppVersion
+
+	if chart.AppVersion != "" {
+		log.Debug().Str("chartYamlPath", chartYamlPath).Str("appVersion", chart.AppVersion).Msg("Extracted appVersion from Chart.yaml")
+		return chart.AppVersion
+	}
+
+	log.Debug().Str("chartYamlPath", chartYamlPath).Str("version", chart.Version).Msg("Extracted version from Chart.yaml")
+	return chart.Version
 }
 
 // parseImageSource extracts the repository and tag from a full image source string.
-// It assumes the format "repository:tag". If no tag is present, "latest" is assumed.
+// It assumes the format "repository:tag". If no tag is present, it returns an empty tag.
 func parseImageSource(source string) (repository, tag string) {
 	lastColon := strings.LastIndex(source, ":")
 	if lastColon == -1 {
-		return source, "latest" // No tag found, assume latest
+		return source, "" // No tag found
+	}
+	// Handle case where source ends with ":"
+	if lastColon == len(source)-1 {
+		return source[:lastColon], ""
 	}
 	return source[:lastColon], source[lastColon+1:]
 }
 
 // ScanChart scans a Helm chart directory for container images.
 // It walks through the directory, parses YAML files, and extracts image references.
-// For images with the "latest" tag, it replaces them with an image tagged with the chart's appVersion.
+// For images with a null or missing tag, it uses the chart's appVersion.
+// For images with an explicit "latest" tag, it keeps the "latest" tag.
 // It returns a slice of unique images found in the chart.
 func ScanChart(chartPath string) ([]types.Image, error) {
 	uniqueImages := make(map[string]types.Image)
@@ -85,27 +97,23 @@ func ScanChart(chartPath string) ([]types.Image, error) {
 				if globalRegistry != "" && globalRegistry != "null" && !isSubChart {
 					img = applyGlobalRegistry(img, globalRegistry)
 				}
-				uniqueImages[img.Source] = img
 
-				// Handle "latest" tag with appVersion
 				repo, tag := parseImageSource(img.Source)
-				if tag == "latest" {
+				if tag == "" || tag == "null" {
 					chartYamlFile := findChartYamlForPath(path, chartPath)
 					if chartYamlFile != "" {
-						appVersion := getAppVersionFromChartYaml(chartYamlFile)
-						if appVersion != "" {
-							// Remove the 'latest' tagged image
-							delete(uniqueImages, img.Source)
-
-							appVersionImage := types.Image{
-								Name:   img.Name, // Keep the original name
-								Source: repo + ":" + appVersion,
-							}
-							uniqueImages[appVersionImage.Source] = appVersionImage
-							log.Debug().Msgf("Replaced latest image: %s with appVersion image: %s", img.Source, appVersionImage.Source)
+						chartVersion := getAppVersionFromChartYaml(chartYamlFile)
+						if chartVersion != "" {
+							img.Source = repo + ":" + chartVersion
+						} else {
+							img.Source = repo + ":latest" // Fallback to latest if no appVersion
 						}
+					} else {
+						img.Source = repo + ":latest" // Fallback to latest if no Chart.yaml
 					}
 				}
+
+				uniqueImages[img.Source] = img
 			}
 		}
 
