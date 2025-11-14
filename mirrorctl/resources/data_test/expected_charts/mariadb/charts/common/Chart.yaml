@@ -1,4 +1,10 @@
 annotations:
+  # --- Provenance Metadata ---
+  repackage.provenance/repackaged-by: "mirrorctl dev"
+  repackage.provenance/original-chart-url: "https://charts.bitnami.com/bitnami"
+  repackage.provenance/original-chart-name: "common"
+  repackage.provenance/original-chart-version: "2.4.0"
+  repackage.provenance/timestamp: "2025-11-12T10:18:24Z"
   category: Infrastructure
   licenses: Apache-2.0
 apiVersion: v2
@@ -20,4 +26,4 @@ name: common
 sources:
 - https://github.com/bitnami/charts
 type: library
-version: 2.4.0
+version: 2.4.0-poc

@@ -70,7 +70,6 @@ func MirrorCharts(ctx *appcontext.AppContext, cmd *cobra.Command) error {
 		if err != nil {
 			return fmt.Errorf("failed to mirror images: %w", err)
 		}
-		log.Debug().Interface("images pushed", imagesPushed).Msg("Mirroring images")
 
 		printImagesSummary(imagesPushed, imagesFailed)
 	}

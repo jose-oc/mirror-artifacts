@@ -1,0 +1,20 @@
+apiVersion: v2
+annotations:
+  # --- Provenance Metadata ---
+  repackage.provenance/repackaged-by: "mirrorctl dev"
+  repackage.provenance/original-chart-url: "https://helm.influxdata.com"
+  repackage.provenance/original-chart-name: "influxdb2"
+  repackage.provenance/original-chart-version: "2.1.2"
+  repackage.provenance/timestamp: "2025-11-14T16:31:20Z"
+appVersion: 2.7.4
+description: A Helm chart for InfluxDB v2
+home: https://www.influxdata.com/products/influxdb/
+icon: https://avatars0.githubusercontent.com/u/5713248?s=200&v=4
+maintainers:
+- email: rawkode@influxdata.com
+  name: rawkode
+- email: giacomo@influxdata.com
+  name: gitirabassi
+name: influxdb2
+type: application
+version: 2.1.2-poc

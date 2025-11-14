@@ -71,12 +71,8 @@ func MirrorImages(ctx *appcontext.AppContext, imagesList types.ImagesList) (map[
 			})
 		}
 
-		tag, err := getImageTag(img)
-		if err != nil {
-			handleFailure(err, "Failed to get image tag")
-			continue
-		}
-		targetRepoPath := fmt.Sprintf("%s/%s:%s", ctx.Config.GCP.GARRepoContainers, img.Name, tag)
+		img_name := strings.TrimPrefix(img.Source, "docker.io/")
+		targetRepoPath := fmt.Sprintf("%s/%s", ctx.Config.GCP.GARRepoContainers, img_name)
 
 		if ctx.DryRun {
 			log.Info().
@@ -164,17 +160,4 @@ func MirrorImages(ctx *appcontext.AppContext, imagesList types.ImagesList) (map[
 	}
 
 	return mirroredImages, failedImages, nil
-}
-
-// getImageTag extracts the tag from an image source string.
-// It takes an image object as input.
-// It returns the image tag and an error if the tag cannot be extracted.
-func getImageTag(img types.Image) (string, error) {
-	if img.Source == "" {
-		return "", fmt.Errorf("image source cannot be empty")
-	}
-	if !strings.Contains(img.Source, ":") {
-		return "", fmt.Errorf("image source must contain a tag")
-	}
-	return strings.Split(img.Source, ":")[1], nil
 }
