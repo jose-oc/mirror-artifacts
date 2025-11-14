@@ -59,6 +59,17 @@ func TestMirrorCharts(t *testing.T) {
 		chart       types.Chart
 	}{
 		{
+			name:        "GrafanaChart",
+			inputDir:    "../../resources/data_test/input_charts/grafana",
+			expectedDir: "../../resources/data_test/expected_charts/grafana",
+			outputDir:   "../../resources/data_test/output_charts/grafana",
+			chart: types.Chart{
+				Name:    "grafana",
+				Source:  "https://grafana.github.io/helm-charts",
+				Version: "7.0.19",
+			},
+		},
+		{
 			name:        "GrafanaAgentOperatorChart",
 			inputDir:    "../../resources/data_test/input_charts/grafana-agent-operator",
 			expectedDir: "../../resources/data_test/expected_charts/grafana-agent-operator",
@@ -67,6 +78,28 @@ func TestMirrorCharts(t *testing.T) {
 				Name:    "grafana-agent-operator",
 				Source:  "https://grafana.github.io/helm-charts",
 				Version: "0.5.1",
+			},
+		},
+		{
+			name:        "InfluxDBChart",
+			inputDir:    "../../resources/data_test/input_charts/influxdb",
+			expectedDir: "../../resources/data_test/expected_charts/influxdb",
+			outputDir:   "../../resources/data_test/output_charts/influxdb",
+			chart: types.Chart{
+				Name:    "time-series-datastore-vmatrix",
+				Source:  "https://helm.influxdata.com",
+				Version: "4.12.5",
+			},
+		},
+		{
+			name:        "InfluxDB2Chart",
+			inputDir:    "../../resources/data_test/input_charts/influxdb2",
+			expectedDir: "../../resources/data_test/expected_charts/influxdb2",
+			outputDir:   "../../resources/data_test/output_charts/influxdb2",
+			chart: types.Chart{
+				Name:    "time-series-datastore",
+				Source:  "https://helm.influxdata.com",
+				Version: "2.1.2",
 			},
 		},
 		{
@@ -89,6 +122,28 @@ func TestMirrorCharts(t *testing.T) {
 				Name:    "mariadb",
 				Source:  "https://charts.bitnami.com/bitnami",
 				Version: "12.2.4",
+			},
+		},
+		{
+			name:        "MinioChart",
+			inputDir:    "../../resources/data_test/input_charts/minio",
+			expectedDir: "../../resources/data_test/expected_charts/minio",
+			outputDir:   "../../resources/data_test/output_charts/minio",
+			chart: types.Chart{
+				Name:    "minio",
+				Source:  "https://charts.bitnami.com/bitnami",
+				Version: "13.4.4",
+			},
+		},
+		{
+			name:        "PromtailChart",
+			inputDir:    "../../resources/data_test/input_charts/promtail",
+			expectedDir: "../../resources/data_test/expected_charts/promtail",
+			outputDir:   "../../resources/data_test/output_charts/promtail",
+			chart: types.Chart{
+				Name:    "promtail",
+				Source:  "https://grafana.github.io/helm-charts",
+				Version: "6.15.5",
 			},
 		},
 		{
