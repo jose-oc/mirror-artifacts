@@ -171,6 +171,34 @@ func TestMirrorRedisChart(t *testing.T) {
 	}
 }
 
+func TestMirrorRabbitChart(t *testing.T) {
+	// Setup test directories
+	inputDir := "../../resources/data_test/input_charts/rabbitmq"
+	expectedDir := "../../resources/data_test/expected_charts/rabbitmq"
+	outputDir := "../../resources/data_test/output_charts/rabbitmq"
+
+	// Clean up output directory before test
+	os.RemoveAll(outputDir)
+	defer os.RemoveAll(outputDir) // Clean up after test
+
+	// Create test configuration
+	chart := types.Chart{
+		Name:    "rabbitmq",
+		Source:  "https://charts.bitnami.com/bitnami",
+		Version: "11.1.5",
+	}
+	transformHelmChartDir, err := TransformHelmChart(&ctx, chart, inputDir, outputDir)
+	if err != nil {
+		t.Fatalf("MirrorChart failed: %v", err)
+	}
+
+	// Verify the output matches the expected output
+	err = compareDirectories(expectedDir, transformHelmChartDir)
+	if err != nil {
+		t.Fatalf("Output does not match expected: %v", err)
+	}
+}
+
 func compareDirectories(expectedDir, actualDir string) error {
 	// Walk through the expected directory
 	return filepath.Walk(expectedDir, func(expectedPath string, expectedInfo fs.FileInfo, err error) error {
