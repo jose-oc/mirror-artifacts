@@ -143,6 +143,34 @@ func TestMirrorGrafanaAgentOperatorChart(t *testing.T) {
 	}
 }
 
+func TestMirrorRedisChart(t *testing.T) {
+	// Setup test directories
+	inputDir := "../../resources/data_test/input_charts/redis"
+	expectedDir := "../../resources/data_test/expected_charts/redis"
+	outputDir := "../../resources/data_test/output_charts/redis"
+
+	// Clean up output directory before test
+	os.RemoveAll(outputDir)
+	defer os.RemoveAll(outputDir) // Clean up after test
+
+	// Create test configuration
+	chart := types.Chart{
+		Name:    "redis",
+		Source:  "https://charts.bitnami.com/bitnami",
+		Version: "17.3.11",
+	}
+	transformHelmChartDir, err := TransformHelmChart(&ctx, chart, inputDir, outputDir)
+	if err != nil {
+		t.Fatalf("MirrorChart failed: %v", err)
+	}
+
+	// Verify the output matches the expected output
+	err = compareDirectories(expectedDir, transformHelmChartDir)
+	if err != nil {
+		t.Fatalf("Output does not match expected: %v", err)
+	}
+}
+
 func compareDirectories(expectedDir, actualDir string) error {
 	// Walk through the expected directory
 	return filepath.Walk(expectedDir, func(expectedPath string, expectedInfo fs.FileInfo, err error) error {
