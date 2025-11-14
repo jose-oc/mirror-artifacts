@@ -32,24 +32,15 @@ var ctx = appcontext.AppContext{
 	DryRun: false,
 }
 
-func TestMirrorMariadbChart(t *testing.T) {
-	inputDir := "../../resources/data_test/input_charts/mariadb"
-	expectedDir := "../../resources/data_test/expected_charts/mariadb"
-	outputDir := "../../resources/data_test/output_charts/mariadb"
-
+func runMirrorChartTest(t *testing.T, inputDir, expectedDir, outputDir string, chart types.Chart) {
 	// Clean up output directory before test
 	os.RemoveAll(outputDir)
 	defer os.RemoveAll(outputDir) // Clean up after test
 
 	// Execute the mirroring
-	chart := types.Chart{
-		Name:    "mariadb",
-		Source:  "https://charts.bitnami.com/bitnami",
-		Version: "12.2.4",
-	}
 	transformHelmChartDir, err := TransformHelmChart(&ctx, chart, inputDir, outputDir)
 	if err != nil {
-		t.Fatalf("MirrorChart failed: %v", err)
+		t.Fatalf("TransformHelmChart failed: %v", err)
 	}
 
 	// Verify the output matches the expected output
@@ -59,143 +50,86 @@ func TestMirrorMariadbChart(t *testing.T) {
 	}
 }
 
-func TestMirrorLokiChart(t *testing.T) {
-	// Setup test directories
-	inputDir := "../../resources/data_test/input_charts/loki"
-	expectedDir := "../../resources/data_test/expected_charts/loki"
-	outputDir := "../../resources/data_test/output_charts/loki"
-
-	// Clean up output directory before test
-	os.RemoveAll(outputDir)
-	defer os.RemoveAll(outputDir) // Clean up after test
-
-	// Create test configuration
-	chart := types.Chart{
-		Name:    "loki",
-		Source:  "https://grafana.github.io/helm-charts",
-		Version: "5.5.2",
-	}
-	transformHelmChartDir, err := TransformHelmChart(&ctx, chart, inputDir, outputDir)
-	if err != nil {
-		t.Fatalf("MirrorChart failed: %v", err)
-	}
-
-	// Verify the output matches the expected output
-	err = compareDirectories(expectedDir, transformHelmChartDir)
-	if err != nil {
-		t.Fatalf("Output does not match expected: %v", err)
-	}
-}
-
-func TestMirrorTelegrafChart(t *testing.T) {
-	// Setup test directories
-	inputDir := "../../resources/data_test/input_charts/telegraf"
-	expectedDir := "../../resources/data_test/expected_charts/telegraf"
-	outputDir := "../../resources/data_test/output_charts/telegraf"
-
-	// Clean up output directory before test
-	os.RemoveAll(outputDir)
-	defer os.RemoveAll(outputDir) // Clean up after test
-
-	// Create test configuration
-	chart := types.Chart{
-		Name:    "telegraf",
-		Source:  "https://helm.influxdata.com/",
-		Version: "1.8.28",
-	}
-	transformHelmChartDir, err := TransformHelmChart(&ctx, chart, inputDir, outputDir)
-	if err != nil {
-		t.Fatalf("MirrorChart failed: %v", err)
-	}
-
-	// Verify the output matches the expected output
-	err = compareDirectories(expectedDir, transformHelmChartDir)
-	if err != nil {
-		t.Fatalf("Output does not match expected: %v", err)
-	}
-}
-
-func TestMirrorGrafanaAgentOperatorChart(t *testing.T) {
-	// Setup test directories
-	inputDir := "../../resources/data_test/input_charts/grafana-agent-operator"
-	expectedDir := "../../resources/data_test/expected_charts/grafana-agent-operator"
-	outputDir := "../../resources/data_test/output_charts/grafana-agent-operator"
-
-	// Clean up output directory before test
-	os.RemoveAll(outputDir)
-	defer os.RemoveAll(outputDir) // Clean up after test
-
-	// Create test configuration
-	chart := types.Chart{
-		Name:    "grafana-agent-operator",
-		Source:  "https://grafana.github.io/helm-charts",
-		Version: "0.5.1",
-	}
-	transformHelmChartDir, err := TransformHelmChart(&ctx, chart, inputDir, outputDir)
-	if err != nil {
-		t.Fatalf("MirrorChart failed: %v", err)
-	}
-
-	// Verify the output matches the expected output
-	err = compareDirectories(expectedDir, transformHelmChartDir)
-	if err != nil {
-		t.Fatalf("Output does not match expected: %v", err)
-	}
-}
-
-func TestMirrorRedisChart(t *testing.T) {
-	// Setup test directories
-	inputDir := "../../resources/data_test/input_charts/redis"
-	expectedDir := "../../resources/data_test/expected_charts/redis"
-	outputDir := "../../resources/data_test/output_charts/redis"
-
-	// Clean up output directory before test
-	os.RemoveAll(outputDir)
-	defer os.RemoveAll(outputDir) // Clean up after test
-
-	// Create test configuration
-	chart := types.Chart{
-		Name:    "redis",
-		Source:  "https://charts.bitnami.com/bitnami",
-		Version: "17.3.11",
-	}
-	transformHelmChartDir, err := TransformHelmChart(&ctx, chart, inputDir, outputDir)
-	if err != nil {
-		t.Fatalf("MirrorChart failed: %v", err)
+func TestMirrorCharts(t *testing.T) {
+	tests := []struct {
+		name        string
+		inputDir    string
+		expectedDir string
+		outputDir   string
+		chart       types.Chart
+	}{
+		{
+			name:        "GrafanaAgentOperatorChart",
+			inputDir:    "../../resources/data_test/input_charts/grafana-agent-operator",
+			expectedDir: "../../resources/data_test/expected_charts/grafana-agent-operator",
+			outputDir:   "../../resources/data_test/output_charts/grafana-agent-operator",
+			chart: types.Chart{
+				Name:    "grafana-agent-operator",
+				Source:  "https://grafana.github.io/helm-charts",
+				Version: "0.5.1",
+			},
+		},
+		{
+			name:        "LokiChart",
+			inputDir:    "../../resources/data_test/input_charts/loki",
+			expectedDir: "../../resources/data_test/expected_charts/loki",
+			outputDir:   "../../resources/data_test/output_charts/loki",
+			chart: types.Chart{
+				Name:    "loki",
+				Source:  "https://grafana.github.io/helm-charts",
+				Version: "5.5.2",
+			},
+		},
+		{
+			name:        "MariadbChart",
+			inputDir:    "../../resources/data_test/input_charts/mariadb",
+			expectedDir: "../../resources/data_test/expected_charts/mariadb",
+			outputDir:   "../../resources/data_test/output_charts/mariadb",
+			chart: types.Chart{
+				Name:    "mariadb",
+				Source:  "https://charts.bitnami.com/bitnami",
+				Version: "12.2.4",
+			},
+		},
+		{
+			name:        "RabbitChart",
+			inputDir:    "../../resources/data_test/input_charts/rabbitmq",
+			expectedDir: "../../resources/data_test/expected_charts/rabbitmq",
+			outputDir:   "../../resources/data_test/output_charts/rabbitmq",
+			chart: types.Chart{
+				Name:    "rabbitmq",
+				Source:  "https://charts.bitnami.com/bitnami",
+				Version: "11.1.5",
+			},
+		},
+		{
+			name:        "RedisChart",
+			inputDir:    "../../resources/data_test/input_charts/redis",
+			expectedDir: "../../resources/data_test/expected_charts/redis",
+			outputDir:   "../../resources/data_test/output_charts/redis",
+			chart: types.Chart{
+				Name:    "redis",
+				Source:  "https://charts.bitnami.com/bitnami",
+				Version: "17.3.11",
+			},
+		},
+		{
+			name:        "TelegrafChart",
+			inputDir:    "../../resources/data_test/input_charts/telegraf",
+			expectedDir: "../../resources/data_test/expected_charts/telegraf",
+			outputDir:   "../../resources/data_test/output_charts/telegraf",
+			chart: types.Chart{
+				Name:    "telegraf",
+				Source:  "https://helm.influxdata.com/",
+				Version: "1.8.28",
+			},
+		},
 	}
 
-	// Verify the output matches the expected output
-	err = compareDirectories(expectedDir, transformHelmChartDir)
-	if err != nil {
-		t.Fatalf("Output does not match expected: %v", err)
-	}
-}
-
-func TestMirrorRabbitChart(t *testing.T) {
-	// Setup test directories
-	inputDir := "../../resources/data_test/input_charts/rabbitmq"
-	expectedDir := "../../resources/data_test/expected_charts/rabbitmq"
-	outputDir := "../../resources/data_test/output_charts/rabbitmq"
-
-	// Clean up output directory before test
-	os.RemoveAll(outputDir)
-	defer os.RemoveAll(outputDir) // Clean up after test
-
-	// Create test configuration
-	chart := types.Chart{
-		Name:    "rabbitmq",
-		Source:  "https://charts.bitnami.com/bitnami",
-		Version: "11.1.5",
-	}
-	transformHelmChartDir, err := TransformHelmChart(&ctx, chart, inputDir, outputDir)
-	if err != nil {
-		t.Fatalf("MirrorChart failed: %v", err)
-	}
-
-	// Verify the output matches the expected output
-	err = compareDirectories(expectedDir, transformHelmChartDir)
-	if err != nil {
-		t.Fatalf("Output does not match expected: %v", err)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			runMirrorChartTest(t, tt.inputDir, tt.expectedDir, tt.outputDir, tt.chart)
+		})
 	}
 }
 
