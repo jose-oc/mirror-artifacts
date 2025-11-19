@@ -1,20 +1,39 @@
 images:
-  - name: hello-world
-    source: docker.io/library/hello-world:latest
-  - name: wrong-image
-    source: docker.io/bitnami/nginx:1.25.3
-  - name: wrong-image-not-available
-    source: docker.io/bitnami/redis:7.2.0
-  - name: alpine
-    source: docker.io/library/alpine:3.22.2
-  - name: alpine
-    source: docker.io/library/alpine:latest
-  - name: curl
-    source: quay.io/curl/curl:8.16.0
-  - name: curl
-    source: docker.io/curlimages/curl:8.15.0
-  - name: curl
-    source: quay.io/curl/curl:latest
-  # <gcp.gar_repo_containers>/bitnami/mariadb:10.11.3-debian-11-r5
+  - name: bitnami/bitnami-shell
+    source: docker.io/bitnamilegacy/bitnami-shell:11-debian-11-r118
+  - name: bitnami/bitnami-shell
+    source: docker.io/bitnamilegacy/bitnami-shell:11-debian-11-r48
+  - name: bitnami/bitnami-shell
+    source: docker.io/bitnamilegacy/bitnami-shell:11-debian-11-r56
+  - name: bitnami/kubectl
+    source: docker.io/bitnamilegacy/kubectl:2.8.2
   - name: bitnami/mariadb
     source: docker.io/bitnamilegacy/mariadb:10.11.3-debian-11-r5
+  - name: bitnami/minio-client
+    source: docker.io/bitnamilegacy/minio-client:2024.1.31-debian-11-r2
+  - name: bitnami/minio
+    source: docker.io/bitnamilegacy/minio:2024.2.6-debian-11-r1
+  - name: bitnami/mysqld-exporter
+    source: docker.io/bitnamilegacy/mysqld-exporter:0.14.0-debian-11-r119
+  - name: bitnami/os-shell
+    source: docker.io/bitnamilegacy/os-shell:11-debian-11-r96
+  - name: bitnami/rabbitmq
+    source: docker.io/bitnamilegacy/rabbitmq:3.11.4-debian-11-r0
+  - name: bitnami/redis-exporter
+    source: docker.io/bitnamilegacy/redis-exporter:1.45.0-debian-11-r1
+  - name: bitnami/redis-sentinel
+    source: docker.io/bitnamilegacy/redis-sentinel:7.0.5-debian-11-r14
+  - name: bitnami/redis
+    source: docker.io/bitnamilegacy/redis:7.0.5-debian-11-r15
+  - name: bitnami/redis
+    source: docker.io/bitnamilegacy/redis:7.0.5-debian-11-r15
+  - name: grafana/loki-helm-test
+    source: docker.io/grafana/loki-helm-test:2.8.2
+  - name: influxdb
+    source: docker.io/library/influxdb:1.8.10-alpine
+  - name: influxdb
+    source: docker.io/library/influxdb:2.7.4-alpine
+  - name: influxdb
+    source: docker.io/library/influxdb:2.7.7-alpine
+  - name: telegraf
+    source: docker.io/library/telegraf:1.26-alpine
