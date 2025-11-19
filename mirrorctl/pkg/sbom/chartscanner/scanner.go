@@ -60,6 +60,7 @@ func parseImageSource(source string) (repository, tag string) {
 // It walks through the directory, parses YAML files, and extracts image references.
 // For images with a null or missing tag, it uses the chart's appVersion.
 // For images with an explicit "latest" tag, it keeps the "latest" tag.
+//
 // It returns a slice of unique images found in the chart.
 func ScanChart(chartPath string) ([]types.Image, error) {
 	uniqueImages := make(map[string]types.Image)
