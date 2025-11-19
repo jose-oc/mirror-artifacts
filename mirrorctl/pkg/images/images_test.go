@@ -47,15 +47,15 @@ func TestMirrorImages_DryRun(t *testing.T) {
 	assert.NoError(t, err)
 	_, err = file.WriteString(`
 images:
-  - name: ubuntu
-    source: ubuntu:22.04
+  - name: myfolder/myubuntuimage
+    source: sourcefolder/ubuntu:22.04
 `)
 	assert.NoError(t, err)
 	file.Close()
 
 	mirrored, failed, err := MirrorImagesFromFile(appCtx, file.Name())
 	assert.NoError(t, err)
-	assert.Equal(t, "us-central1-docker.pkg.dev/my-project/my-repo/ubuntu:22.04", mirrored["ubuntu:22.04"])
+	assert.Equal(t, "us-central1-docker.pkg.dev/my-project/my-repo/myfolder/myubuntuimage:22.04", mirrored["sourcefolder/ubuntu:22.04"])
 	assert.Equal(t, 0, len(failed))
 }
 
