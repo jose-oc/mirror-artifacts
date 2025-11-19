@@ -52,8 +52,9 @@ func TestTransformedChartImagesMatchMirroredImages(t *testing.T) {
 	}
 
 	// Define chart paths
-	inputChartPath := filepath.Join("..", "..", "resources", "data_test", "input_charts", "loki")
-	transformedChartPath := filepath.Join("..", "..", "resources", "data_test", "expected_charts", "loki")
+	// TODO this test is checking only telegraf chart, but it should be extended to check all charts
+	inputChartPath := filepath.Join("..", "..", "resources", "data_test", "input_charts", "telegraf")
+	transformedChartPath := filepath.Join("..", "..", "resources", "data_test", "expected_charts", "telegraf")
 
 	// Ensure paths are absolute for chartscanner
 	absInputChartPath, err := filepath.Abs(inputChartPath)
