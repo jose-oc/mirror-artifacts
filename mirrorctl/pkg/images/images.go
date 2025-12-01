@@ -5,47 +5,16 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"os"
 	"os/exec"
 	"strings"
 
 	"github.com/jose-oc/mirror-artifacts/mirrorctl/pkg/appcontext"
 	"github.com/jose-oc/mirror-artifacts/mirrorctl/pkg/types"
 	"github.com/rs/zerolog/log"
-	"gopkg.in/yaml.v3"
 	"oras.land/oras-go/v2"
 	"oras.land/oras-go/v2/registry/remote"
 	"oras.land/oras-go/v2/registry/remote/auth"
 )
-
-// MirrorImagesFromFile mirrors a list of container images from a file to a Google Artifact Registry.
-// It takes an application context and the path to the file containing the list of images as input.
-//
-// It returns three values:
-//   - A map of strings to strings, where the keys are the source image names and the values are the destination image names.
-//   - A map of strings to strings, where the keys are the source image names and the values are the image digests.
-//   - An error if the mirroring fails.
-func MirrorImagesFromFile(ctx *appcontext.AppContext, imagesFile string) (map[string]string, []types.FailedImage, error) {
-	if imagesFile == "" {
-		return nil, nil, fmt.Errorf("images file path is required")
-	}
-
-	// Read images.yaml
-	data, err := os.ReadFile(imagesFile)
-	if err != nil {
-		log.Error().Err(err).Str("file", imagesFile).Msg("Failed to read images file")
-		return nil, nil, err
-	}
-	var imagesList types.ImagesList
-	if err := yaml.Unmarshal(data, &imagesList); err != nil {
-		log.Error().Err(err).Str("file", imagesFile).Msg("Failed to parse images file")
-		return nil, nil, err
-	}
-
-	// Log the image list in a pretty format
-	log.Info().Interface("images", imagesList).Str("file", imagesFile).Msg("Loaded images from file")
-	return MirrorImages(ctx, imagesList)
-}
 
 // MirrorImages mirrors a list of container images to a Google Artifact Registry.
 // It takes an application context and a list of images as input.
