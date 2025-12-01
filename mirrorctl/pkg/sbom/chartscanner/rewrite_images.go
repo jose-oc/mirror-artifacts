@@ -1,12 +1,11 @@
 package chartscanner
 
 import (
-	"fmt"
-	"log"
-	"os"
 	"strings"
 
-	"gopkg.in/yaml.v3"
+	"github.com/jose-oc/mirror-artifacts/mirrorctl/pkg/config"
+	"github.com/jose-oc/mirror-artifacts/mirrorctl/pkg/types"
+	"github.com/rs/zerolog/log"
 )
 
 // RewriteConfig defines the structure of the rewrite configuration file
@@ -22,27 +21,16 @@ type RewriteRule struct {
 
 // RewriteImages takes a list of images and a path to a configuration file,
 // and returns a new list of images with replacements applied.
-func RewriteImages(images []string, configPath string) ([]string, error) {
-	// Read configuration
-	data, err := os.ReadFile(configPath)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read config file %s: %w", configPath, err)
-	}
-
-	var config RewriteConfig
-	if err := yaml.Unmarshal(data, &config); err != nil {
-		return nil, fmt.Errorf("failed to parse config file %s: %w", configPath, err)
-	}
-
-	var rewrittenImages []string
+func RewriteImages(images []types.Image, imageRewriteRules []config.ImageRewrite) ([]types.Image, error) {
+	var rewrittenImages []types.Image
 
 	for _, image := range images {
 		currentImage := image
-		for _, rule := range config.Rewrites {
-			if strings.Contains(currentImage, rule.Old) {
-				newImage := strings.ReplaceAll(currentImage, rule.Old, rule.New)
-				log.Printf("Rewriting image: %s -> %s (rule: %s -> %s)", currentImage, newImage, rule.Old, rule.New)
-				currentImage = newImage
+		for _, rule := range imageRewriteRules {
+			if strings.Contains(currentImage.Source, rule.Old) {
+				newImage := strings.ReplaceAll(currentImage.Source, rule.Old, rule.New)
+				log.Debug().Str("image", currentImage.Source).Str("newImage", newImage).Msg("Rewriting image")
+				currentImage.Source = newImage
 			}
 		}
 		rewrittenImages = append(rewrittenImages, currentImage)

@@ -45,7 +45,7 @@ func WriteImagesToFile(images []types.Image, outputPath string) error {
 		return fmt.Errorf("failed to marshal images: %w", err)
 	}
 
-	if err := os.WriteFile(outputPath, data, 0644); err != nil {
+	if err := os.WriteFile(outputPath, data, 0o644); err != nil {
 		log.Error().Err(err).Str("file", outputPath).Msg("Failed to write images to file")
 		return fmt.Errorf("failed to write images to file %s: %w", outputPath, err)
 	}
@@ -131,4 +131,25 @@ func WriteImagesToFilePerChart(imageListByChart map[string][]types.Image, output
 	}
 
 	return nil
+}
+
+// LoadImagesFile reads an images.yaml file and returns a list of images.
+func LoadImagesFile(imagesFile string) (*types.ImagesList, error) {
+	if imagesFile == "" {
+		return nil, fmt.Errorf("images file path is required")
+	}
+	// Read images.yaml
+	data, err := os.ReadFile(imagesFile)
+	if err != nil {
+		log.Error().Err(err).Str("file", imagesFile).Msg("Failed to read images file")
+		return nil, err
+	}
+	var imagesList types.ImagesList
+	if err := yaml.Unmarshal(data, &imagesList); err != nil {
+		log.Error().Err(err).Str("file", imagesFile).Msg("Failed to parse images file")
+		return nil, err
+	}
+	// Log the image list in a pretty format
+	log.Info().Interface("images", imagesList).Str("file", imagesFile).Msg("Loaded images from file")
+	return &imagesList, nil
 }

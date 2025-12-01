@@ -17,3 +17,11 @@ prod-mode: false
 log-color: true
 log-level: "debug"
 log-file: ""
+
+# Rules for image rewriting.
+# On each image reference, rewrite the old image substring with the new one.
+image_rewrites:
+  - old: "/bitnami/"
+    new: "/bitnamilegacy/"
+  - old: "/bitnami-shell:"
+    new: "/bitnami-shell-archived:"

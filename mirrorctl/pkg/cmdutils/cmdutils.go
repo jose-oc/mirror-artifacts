@@ -27,7 +27,21 @@ func MirrorImages(ctx *appcontext.AppContext, _ *cobra.Command) error {
 	if ctx.DryRun {
 		log.Info().Msg("Dry-run: Would mirror images to GAR")
 	}
-	imagesPushed, imagesFailed, err := images.MirrorImagesFromFile(ctx, imagesFile)
+
+	// Load and process images
+	loadedImages, err := datastructures.LoadImagesFile(imagesFile)
+	if err != nil {
+		return fmt.Errorf("failed to load images file: %w", err)
+	}
+
+	// Apply rewrites to the loaded images
+	rewrittenImages, err := chartscanner.RewriteImages(loadedImages.Images, ctx.Config.ImageRewrites)
+	if err != nil {
+		return fmt.Errorf("failed to rewrite images: %w", err)
+	}
+
+	// Mirror the rewritten images
+	imagesPushed, imagesFailed, err := images.MirrorImages(ctx, types.ImagesList{Images: rewrittenImages})
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to mirror images")
 		return fmt.Errorf("failed to mirror images: %w", err)
@@ -65,7 +79,10 @@ func MirrorCharts(ctx *appcontext.AppContext, cmd *cobra.Command) error {
 
 		sortedImages := datastructures.DeduplicateAndSortImages(imageListByChart)
 		var imagesList types.ImagesList
-		imagesList.Images = sortedImages
+		imagesList.Images, err = chartscanner.RewriteImages(sortedImages, ctx.Config.ImageRewrites)
+		if err != nil {
+			return fmt.Errorf("failed to rewrite images: %w", err)
+		}
 		imagesPushed, imagesFailed, err := images.MirrorImages(ctx, imagesList)
 		if err != nil {
 			return fmt.Errorf("failed to mirror images: %w", err)

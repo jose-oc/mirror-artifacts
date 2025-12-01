@@ -8,8 +8,9 @@ import (
 // Config holds the application configuration.
 // It is loaded from a configuration file or environment variables.
 type Config struct {
-	GCP     GCPConfig     `mapstructure:"gcp"`     // GCP-related configuration.
-	Options OptionsConfig `mapstructure:"options"` // General options.
+	GCP           GCPConfig      `mapstructure:"gcp"`     // GCP-related configuration.
+	Options       OptionsConfig  `mapstructure:"options"` // General options.
+	ImageRewrites []ImageRewrite `mapstructure:"image_rewrites"`
 }
 
 // GCPConfig holds GCP-related configuration.
@@ -28,6 +29,11 @@ type OptionsConfig struct {
 	Suffix             string `mapstructure:"suffix"`               // A suffix to be appended to the version of the mirrored charts.
 	KeepTempDir        bool   `mapstructure:"keep_temp_dir"`        // A flag to keep temporary directories for debugging purposes.
 	NotifyTagMutations bool   `mapstructure:"notify_tag_mutations"` // A flag to notify about tag mutations.
+}
+
+type ImageRewrite struct {
+	Old string `mapstructure:"old"`
+	New string `mapstructure:"new"`
 }
 
 // LoadConfig loads the application configuration from a configuration file or environment variables.
