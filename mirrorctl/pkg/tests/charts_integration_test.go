@@ -31,7 +31,7 @@ func TestTransformedChartImagesMatchMirroredImages(t *testing.T) {
 	viper.Set("options.notify_tag_mutations", true)
 	viper.Set("prod-mode", false)
 	viper.Set("log-color", true)
-	viper.Set("log-level", "debug")
+	viper.Set("log-level", "warn")
 	viper.Set("log-file", "")
 
 	appCtx := &appcontext.AppContext{
